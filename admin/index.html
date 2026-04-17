@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — Sistema de Tickets · Salud Divina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --blue:        #185FA5;
+  --blue-dark:   #0C447C;
+  --blue-light:  #E6F1FB;
+  --blue-mid:    #378ADD;
+  --sidebar:     #0A3A6B;
+  --sidebar-hover: rgba(255,255,255,0.08);
+  --sidebar-active: rgba(255,255,255,0.15);
+  --green:       #1D9E75;
+  --green-light: #E1F5EE;
+  --amber:       #EF9F27;
+  --amber-light: #FAEEDA;
+  --red:         #E24B4A;
+  --red-light:   #FCEBEB;
+  --purple:      #7F77DD;
+  --purple-light:#EEEDFE;
+  --gray-50:     #F8F7F4;
+  --gray-100:    #F1EFE8;
+  --gray-200:    #D3D1C7;
+  --gray-400:    #888780;
+  --gray-600:    #5F5E5A;
+  --gray-900:    #1C1C1A;
+  --white:       #FFFFFF;
+  --radius:      10px;
+  --radius-sm:   6px;
+  --shadow:      0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.10);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--gray-50); color: var(--gray-900); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+/* ── LOGIN ── */
+#login-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--sidebar);
+}
+.login-card {
+  background: var(--white); border-radius: 16px; padding: 40px 36px;
+  width: 100%; max-width: 380px; box-shadow: var(--shadow-md);
+}
+.login-logo {
+  width: 48px; height: 48px; background: var(--blue); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+}
+.login-logo svg { width: 26px; height: 26px; fill: white; }
+.login-card h2 { text-align: center; font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.login-card p  { text-align: center; font-size: 13px; color: var(--gray-400); margin-bottom: 28px; }
+.login-group   { margin-bottom: 14px; }
+.login-group label { display: block; font-size: 12px; font-weight: 500; color: var(--gray-600); margin-bottom: 5px; }
+.login-group input {
+  width: 100%; padding: 10px 12px; border: 0.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif;
+  font-size: 13px; background: var(--gray-50); color: var(--gray-900); outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.login-group input:focus { border-color: var(--blue-mid); box-shadow: 0 0 0 3px rgba(55,138,221,0.12); background: white; }
+.btn-login {
+  width: 100%; padding: 11px; background: var(--blue); color: white; border: none;
+  border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 6px;
+  transition: background 0.15s;
+}
+.btn-login:hover { background: var(--blue-dark); }
+.login-error { color: var(--red); font-size: 12px; text-align: center; margin-top: 10px; min-height: 18px; }
+
+/* ── APP LAYOUT ── */
+#app-screen { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.app-wrap   { display: flex; flex: 1; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px; background: var(--sidebar); display: flex; flex-direction: column;
+  flex-shrink: 0; overflow-y: auto;
+}
+.sid-brand { padding: 20px 16px 16px; border-bottom: 0.5px solid rgba(255,255,255,0.08); }
+.sid-brand-icon {
+  width: 32px; height: 32px; background: rgba(255,255,255,0.15); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
+}
+.sid-brand-icon svg { width: 18px; height: 18px; fill: white; }
+.sid-name  { font-size: 13px; font-weight: 600; color: white; }
+.sid-role  { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+.sid-section { padding: 16px 0 4px; }
+.sid-section-label { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.3); letter-spacing: 0.08em; padding: 0 16px; margin-bottom: 4px; text-transform: uppercase; }
+.sid-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 16px; font-size: 13px; color: rgba(255,255,255,0.65);
+  cursor: pointer; transition: all 0.15s; border-left: 2px solid transparent;
+  user-select: none;
+}
+.sid-item:hover  { background: var(--sidebar-hover); color: white; }
+.sid-item.active { background: var(--sidebar-active); color: white; border-left-color: #85B7EB; }
+.sid-item svg    { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; opacity: 0.8; }
+.sid-badge {
+  margin-left: auto; background: var(--red); color: white;
+  font-size: 10px; font-weight: 600; padding: 1px 6px;
+  border-radius: 100px; min-width: 18px; text-align: center;
+}
+.sid-footer { margin-top: auto; padding: 14px 16px; border-top: 0.5px solid rgba(255,255,255,0.08); }
+.btn-logout {
+  width: 100%; padding: 8px; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6);
+  border: 0.5px solid rgba(255,255,255,0.12); border-radius: var(--radius-sm);
+  font-family: 'DM Sans', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.15s;
+}
+.btn-logout:hover { background: rgba(255,255,255,0.12); color: white; }
+
+/* ── MAIN ── */
+.main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+.topbar {
+  background: white; border-bottom: 0.5px solid var(--gray-200);
+  padding: 0 24px; height: 52px; display: flex; align-items: center;
+  justify-content: space-between; flex-shrink: 0;
+}
+.topbar-title { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-date  { font-size: 12px; color: var(--gray-400); }
+.topbar-user  {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--gray-600);
+}
+.topbar-avatar {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--blue-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: var(--blue-dark);
+}
+
+.content { padding: 20px 24px; flex: 1; }
+
+/* ── VIEWS ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── KPI GRID ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-card {
+  background: white; border: 0.5px solid var(--gray-200); border-radius: var(--radius);
+  padding: 16px; position: relative; overflow: hidden;
+}
+.kpi-label { font-size: 11px; color: var(--gray-400); font-weight: 500; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi-val   { font-size: 28px; font-weight: 600; color: var(--gray-900); letter-spacing: -0.02em; }
+.kpi-sub   { font-size: 11px; margin-top: 3px; }
+.kpi-bar   { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
+
+/* ── CHARTS ROW ── */
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.chart-card {
+  background: white; border: 0.5px solid var(--gray-200);
+  border-radius: var(--radius); padding: 16px;
+}
+.chart-card-title { font-size: 13px; font-weight: 600; color: var(--gray-900); margin-bottom: 14px; }
+.chart-wrap { position: relative; height: 200px; }
+
+/* ── SECTION HEADER ── */
+.section-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.section-hdr h3 { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+
+/* ── FILTERS ── */
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.filter-select {
+  padding: 6px 10px; font-size: 12px; border: 0.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); background: white; color: var(--gray-600);
+  font-family: 'DM Sans', sans-serif; cursor: pointer; outline: none;
+}
+.filter-select:focus { border-color: var(--blue-mid); }
+.btn-sm {
+  padding: 6px 14px; font-size: 12px; font-weight: 500; border: 0.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); background: white; color: var(--gray-600);
+  font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s;
+}
+.btn-sm:hover { background: var(--gray-100); }
+.btn-sm.primary { background: var(--blue); color: white; border-color: var(--blue); }
+.btn-sm.primary:hover { background: var(--blue-dark); }
+
+/* ── TABLE ── */
+.table-card { background: white; border: 0.5px solid var(--gray-200); border-radius: var(--radius); overflow: hidden; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; padding: 9px 12px; font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 0.5px solid var(--gray-200); white-space: nowrap; background: var(--gray-50); }
+td { padding: 10px 12px; border-bottom: 0.5px solid var(--gray-100); color: var(--gray-900); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--gray-50); }
+
+.mono { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--gray-600); }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.p-pendiente { background: #FCEBEB; color: #A32D2D; border: 1px solid #F09595; }
+.p-progreso  { background: #FAEEDA; color: #854F0B; border: 1px solid #FAC775; }
+.p-resuelto  { background: #EAF3DE; color: #27500A; border: 1px solid #C0DD97; }
+.p-alta      { background: var(--red-light);   color: #A32D2D; }
+.p-normal    { background: var(--gray-100);    color: var(--gray-600); }
+.t-soporte   { background: var(--blue-light);   color: var(--blue-dark); }
+.t-mant      { background: var(--amber-light);  color: #633806; }
+.t-usuario   { background: var(--green-light);  color: #085041; }
+.t-proyecto  { background: var(--purple-light); color: #3C3489; }
+.t-otro      { background: var(--gray-100);     color: var(--gray-600); }
+
+.btn-ver {
+  padding: 4px 10px; font-size: 11px; border: 0.5px solid var(--gray-200);
+  border-radius: 5px; background: white; color: var(--gray-600);
+  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+}
+.btn-ver:hover { background: var(--blue); color: white; border-color: var(--blue); }
+
+/* ── MODAL ── */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  z-index: 200; display: none; align-items: flex-start; justify-content: center;
+  padding: 40px 16px; overflow-y: auto;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: white; border-radius: 14px; width: 100%; max-width: 640px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2); flex-shrink: 0;
+}
+.modal-header {
+  padding: 20px 24px 16px; border-bottom: 0.5px solid var(--gray-200);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-header h3 { font-size: 16px; font-weight: 600; }
+.modal-close {
+  width: 28px; height: 28px; border: none; background: var(--gray-100);
+  border-radius: 50%; cursor: pointer; font-size: 16px; color: var(--gray-600);
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+.modal-body { padding: 20px 24px; }
+.modal-footer { padding: 16px 24px; border-top: 0.5px solid var(--gray-200); display: flex; gap: 8px; justify-content: flex-end; }
+
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.detail-item label { display: block; font-size: 11px; color: var(--gray-400); font-weight: 500; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+.detail-item p     { font-size: 13px; color: var(--gray-900); font-weight: 500; }
+.detail-item.full  { grid-column: 1 / -1; }
+.detail-desc {
+  background: var(--gray-50); border: 0.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); padding: 12px; font-size: 13px;
+  line-height: 1.6; color: var(--gray-900);
+}
+
+.img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.img-thumb {
+  aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden;
+  border: 0.5px solid var(--gray-200); cursor: pointer;
+}
+.img-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.obs-textarea {
+  width: 100%; padding: 10px 12px; border: 0.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif;
+  font-size: 13px; background: var(--gray-50); color: var(--gray-900);
+  resize: vertical; min-height: 80px; outline: none;
+  transition: border-color 0.15s;
+}
+.obs-textarea:focus { border-color: var(--blue-mid); background: white; }
+
+.estado-select {
+  width: 100%; padding: 9px 12px; border: 0.5px solid var(--gray-200);
+  border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif;
+  font-size: 13px; background: var(--gray-50); color: var(--gray-900);
+  outline: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888780' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;
+}
+
+/* ── LOG TABLE ── */
+.log-chip {
+  display: inline-block; padding: 2px 8px; border-radius: 100px;
+  font-size: 10px; font-weight: 600;
+}
+.log-admin    { background: var(--blue-light);  color: var(--blue-dark); }
+.log-cc       { background: var(--purple-light); color: #3C3489; }
+.log-empleado { background: var(--green-light); color: #085041; }
+.log-estado   { background: var(--amber-light); color: #633806; }
+
+/* ── INFORME ── */
+.informe-preview {
+  background: var(--gray-50); border: 0.5px solid var(--gray-200);
+  border-radius: var(--radius); padding: 20px; font-size: 13px;
+  line-height: 1.8; color: var(--gray-900);
+}
+.informe-preview h4 { font-size: 14px; font-weight: 600; margin: 14px 0 6px; color: var(--gray-900); }
+.informe-preview h4:first-child { margin-top: 0; }
+.inf-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 0.5px solid var(--gray-200); }
+.inf-row:last-child { border-bottom: none; }
+.inf-key { color: var(--gray-600); }
+.inf-val { font-weight: 500; }
+
+/* ── SPINNER ── */
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 5px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--gray-900); color: white;
+  padding: 10px 18px; border-radius: 100px;
+  font-size: 13px; font-weight: 500; opacity: 0;
+  pointer-events: none; transition: opacity 0.25s; z-index: 999;
+}
+.toast.show  { opacity: 1; }
+.toast.error { background: var(--red); }
+.toast.ok    { background: var(--green); }
+
+/* ── EMPTY STATE ── */
+.empty { text-align: center; padding: 40px; color: var(--gray-400); font-size: 13px; }
+
+@media (max-width: 900px) {
+  .kpi-grid    { grid-template-columns: 1fr 1fr; }
+  .charts-row  { grid-template-columns: 1fr; }
+  .sidebar     { width: 180px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+    </div>
+    <h2>Panel de administración</h2>
+    <p>Departamento de Sistemas · Salud Divina de la Costa</p>
+    <div class="login-group">
+      <label>Correo electrónico</label>
+      <input type="email" id="login-email" placeholder="sistemsalud.divina@gmail.com"/>
+    </div>
+    <div class="login-group">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••"/>
+    </div>
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app-screen">
+  <div class="app-wrap">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sid-brand">
+        <div class="sid-brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+        </div>
+        <div class="sid-name">Dpto. Sistemas</div>
+        <div class="sid-role" id="sid-email">Coordinador</div>
+      </div>
+
+      <div class="sid-section">
+        <div class="sid-section-label">Principal</div>
+        <div class="sid-item active" onclick="showView('dashboard')">
+          <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+          Dashboard
+        </div>
+        <div class="sid-item" onclick="showView('tickets')">
+          <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11H7v-2h8v2zm3-4H7V9h11v2z"/></svg>
+          Tickets
+          <span class="sid-badge" id="badge-pendientes">0</span>
+        </div>
+      </div>
+
+      <div class="sid-section">
+        <div class="sid-section-label">Reportes</div>
+        <div class="sid-item" onclick="showView('correos')">
+          <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          Correos enviados
+        </div>
+        <div class="sid-item" onclick="showView('informe')">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+          Informe PDF
+        </div>
+      </div>
+
+      <div class="sid-footer">
+        <button class="btn-logout" onclick="doLogout()">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-right">
+          <div class="topbar-date" id="topbar-date"></div>
+          <div class="topbar-user">
+            <div class="topbar-avatar" id="topbar-avatar">DS</div>
+            <span id="topbar-email">Admin</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- ── DASHBOARD ── -->
+        <div class="view active" id="view-dashboard">
+          <div class="kpi-grid" id="kpi-grid"></div>
+          <div class="charts-row">
+            <div class="chart-card">
+              <div class="chart-card-title">Tickets por tipo</div>
+              <div class="chart-wrap"><canvas id="chart-tipo"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-card-title">Estado general</div>
+              <div class="chart-wrap"><canvas id="chart-estado"></canvas></div>
+            </div>
+          </div>
+          <div class="table-card">
+            <div style="padding:14px 16px; border-bottom:0.5px solid var(--gray-200);">
+              <span style="font-size:13px;font-weight:600;">Tickets recientes</span>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Código</th><th>Solicitante</th><th>Área</th><th>Tipo</th><th>Estado</th><th>Prioridad</th><th>Fecha</th><th></th></tr></thead>
+              <tbody id="tabla-recientes"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TICKETS ── -->
+        <div class="view" id="view-tickets">
+          <div class="filters">
+            <select class="filter-select" id="filt-estado" onchange="cargarTickets()">
+              <option value="">Todos los estados</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="En progreso">En progreso</option>
+              <option value="Resuelto">Resuelto</option>
+            </select>
+            <select class="filter-select" id="filt-tipo" onchange="cargarTickets()">
+              <option value="">Todos los tipos</option>
+              <option>Soporte técnico</option><option>Fallo de equipo</option>
+              <option>Problema con software</option><option>Acceso / contraseña</option>
+              <option>Red o conectividad</option><option>Impresora o periférico</option>
+              <option>Instalación de programa</option><option>Solicitud de usuario nuevo</option>
+              <option>Capacitación</option><option>Otro</option>
+            </select>
+            <select class="filter-select" id="filt-area" onchange="cargarTickets()">
+              <option value="">Todas las áreas</option>
+              <option>Presidencia</option><option>Dirección médica</option><option>Gerencia general</option>
+              <option>Urgencias</option><option>Farmacia</option><option>Laboratorio clínico</option>
+              <option>UCI</option><option>Hospitalización</option><option>Consulta externa</option>
+              <option>Facturación electrónica</option><option>Auxiliar de admisiones</option>
+            </select>
+            <select class="filter-select" id="filt-prioridad" onchange="cargarTickets()">
+              <option value="">Toda prioridad</option>
+              <option value="Alta">Alta</option>
+              <option value="Normal">Normal</option>
+            </select>
+            <button class="btn-sm" onclick="limpiarFiltros()">Limpiar</button>
+          </div>
+          <div class="table-card">
+            <div class="table-wrap">
+              <table><thead><tr><th>Código</th><th>Solicitante</th><th>Área</th><th>Tipo</th><th>Estado</th><th>Prioridad</th><th>Fecha</th><th></th></tr></thead>
+              <tbody id="tabla-tickets"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── CORREOS ── -->
+        <div class="view" id="view-correos">
+          <div class="table-card">
+            <div style="padding:14px 16px; border-bottom:0.5px solid var(--gray-200);">
+              <span style="font-size:13px;font-weight:600;">Historial de correos enviados</span>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Fecha</th><th>Ticket</th><th>Destinatario</th><th>Tipo</th></tr></thead>
+              <tbody id="tabla-correos"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── INFORME ── -->
+        <div class="view" id="view-informe">
+          <div class="section-hdr">
+            <h3>Informe por actividades</h3>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-sm primary" id="btn-pdf-sel" onclick="exportarPDFSeleccion()">Exportar PDF seleccionados</button>
+              <button class="btn-sm" onclick="exportarMasivo()">Exportar CSV masivo</button>
+            </div>
+          </div>
+
+          <div style="background:white;border:0.5px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-bottom:16px;">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+              <div>
+                <div style="font-size:11px;color:var(--gray-400);font-weight:500;margin-bottom:4px;">Filtrar por fecha</div>
+                <input type="date" id="inf-fecha-inicio" style="padding:6px 10px;font-size:12px;border:0.5px solid var(--gray-200);border-radius:6px;font-family:DM Sans,sans-serif;"/>
+              </div>
+              <div>
+                <div style="font-size:11px;color:var(--gray-400);font-weight:500;margin-bottom:4px;">Hasta</div>
+                <input type="date" id="inf-fecha-fin" style="padding:6px 10px;font-size:12px;border:0.5px solid var(--gray-200);border-radius:6px;font-family:DM Sans,sans-serif;"/>
+              </div>
+              <button class="btn-sm primary" onclick="cargarTicketsInforme()">Buscar</button>
+              <button class="btn-sm" onclick="seleccionarTodos()">Seleccionar todos</button>
+              <button class="btn-sm" onclick="deseleccionarTodos()">Deseleccionar</button>
+              <span id="inf-contador" style="font-size:12px;color:var(--gray-400);align-self:center;"></span>
+            </div>
+          </div>
+
+          <div class="table-card" style="margin-bottom:16px;">
+            <div class="table-wrap">
+              <table>
+                <thead><tr>
+                  <th style="width:36px;"><input type="checkbox" id="chk-all" onchange="toggleTodos(this.checked)"/></th>
+                  <th>Código</th><th>Actividad solicitada</th><th>Solicitante</th><th>Área</th><th>Estado</th><th>Fecha</th><th>Imágenes</th>
+                </tr></thead>
+                <tbody id="tabla-inf-tickets"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="informe-preview-wrap" style="display:none;">
+            <div class="section-hdr" style="margin-top:8px;">
+              <h3>Vista previa del informe</h3>
+              <button class="btn-sm primary" onclick="exportarPDFSeleccion()">Descargar PDF</button>
+            </div>
+            <div id="informe-preview"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL TICKET ══ -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-codigo">Ticket #SD-...</h3>
+      <button class="modal-close" onclick="cerrarModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid" id="modal-detalle"></div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Descripción</label>
+        <div class="detail-desc" id="modal-desc"></div>
+      </div>
+      <div id="modal-imagenes-wrap" style="display:none;margin-bottom:14px;">
+        <label style="font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Imágenes adjuntas</label>
+        <div class="img-grid" id="modal-imagenes"></div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Cambiar estado</label>
+        <select class="estado-select" id="modal-estado-select">
+          <option value="Pendiente">Pendiente</option>
+          <option value="En progreso">En progreso</option>
+          <option value="Resuelto">Resuelto</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px;">Observaciones internas</label>
+        <textarea class="obs-textarea" id="modal-obs" placeholder="Agrega notas, solución aplicada, acciones tomadas..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-sm primary" id="btn-guardar-ticket" onclick="guardarTicket()">Guardar y notificar empleado</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIGURACIÓN
+// ══════════════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://dbxmdirpldepmyscrrka.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRieG1kaXJwbGRlcG15c2NycmthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NjczOTksImV4cCI6MjA5MDU0MzM5OX0.VHiqjePoR6tnnYcrzTTo_YWHGzk0lLkwau7DIsvryT0';
+const EJS_SERVICE   = 'service_xiujw2n';
+const EJS_TPL_ESTADO= 'template_nu8c6df'; // plantilla notificacion cambio de estado
+const EJS_PUBLIC_KEY= 'Ri7dMXwR6tse7Vmxe';
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+emailjs.init(EJS_PUBLIC_KEY);
+
+let ticketActual = null;
+let chartTipo = null, chartEstado = null;
+
+// ── Fecha ──────────────────────────────────────────────
+document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+function fmt(iso) {
+  return new Date(iso).toLocaleString('es-CO', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function fmtShort(iso) {
+  return new Date(iso).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+// ── Toast ──────────────────────────────────────────────
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── LOGIN ──────────────────────────────────────────────
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const btn   = document.getElementById('btn-login');
+  const err   = document.getElementById('login-error');
+  if(!email || !pass) { err.textContent = 'Ingresa correo y contraseña'; return; }
+  btn.innerHTML = '<span class="spinner"></span>Ingresando...';
+  btn.disabled  = true;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if(error) {
+    err.textContent = 'Credenciales incorrectas. Verifica e intenta de nuevo.';
+    btn.textContent = 'Ingresar'; btn.disabled = false; return;
+  }
+  const u = data.user.email;
+  document.getElementById('sid-email').textContent   = u;
+  document.getElementById('topbar-email').textContent = u.split('@')[0];
+  document.getElementById('topbar-avatar').textContent = u.substring(0,2).toUpperCase();
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display   = 'flex';
+  cargarDashboard();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
+// ── VIEWS ──────────────────────────────────────────────
+const titulos = { dashboard:'Dashboard', tickets:'Gestión de tickets', correos:'Correos enviados', informe:'Informe ejecutivo' };
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.sid-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.sid-item')[['dashboard','tickets','correos','informe'].indexOf(v)].classList.add('active');
+  document.getElementById('topbar-title').textContent = titulos[v] || v;
+  if(v==='tickets')  cargarTickets();
+  if(v==='correos')  cargarCorreos();
+  if(v==='informe')  generarInforme();
+}
+
+// ── PILLS ──────────────────────────────────────────────
+function pillEstado(e) {
+  const cls = {Pendiente:'p-pendiente','En progreso':'p-progreso',Resuelto:'p-resuelto'};
+  return `<span class="pill ${cls[e]||'p-pendiente'}">${e}</span>`;
+}
+function pillPrioridad(p) {
+  return `<span class="pill ${p==='Alta'?'p-alta':'p-normal'}">${p}</span>`;
+}
+function pillTipo(t) {
+  let cls = 't-otro';
+  if(t.includes('Soporte')||t.includes('Fallo')||t.includes('Red')||t.includes('Impresora')) cls='t-soporte';
+  else if(t.includes('software')||t.includes('programa')) cls='t-mant';
+  else if(t.includes('Acceso')||t.includes('usuario')) cls='t-usuario';
+  else if(t.includes('Capacitación')) cls='t-proyecto';
+  return `<span class="pill ${cls}">${t}</span>`;
+}
+
+function filaTicket(t, tbody) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="mono">${t.codigo}</td>
+    <td>${t.nombre}</td>
+    <td style="color:var(--gray-600);font-size:11px;">${t.area}</td>
+    <td>${pillTipo(t.tipo)}</td>
+    <td>${pillEstado(t.estado)}</td>
+    <td>${pillPrioridad(t.prioridad)}</td>
+    <td style="color:var(--gray-400);font-size:11px;white-space:nowrap;">${fmtShort(t.created_at)}</td>
+    <td><button class="btn-ver" onclick="abrirModal('${t.id}')">Ver</button></td>`;
+  tbody.appendChild(tr);
+}
+
+// ── DASHBOARD ──────────────────────────────────────────
+async function cargarDashboard() {
+  const { data: tickets } = await sb.from('tickets').select('*').order('created_at', { ascending: false });
+  if(!tickets) return;
+
+  const total      = tickets.length;
+  const pendientes = tickets.filter(t=>t.estado==='Pendiente').length;
+  const resueltos  = tickets.filter(t=>t.estado==='Resuelto').length;
+  const urgentes   = tickets.filter(t=>t.prioridad==='Alta').length;
+  const tasa       = total ? Math.round(resueltos/total*100) : 0;
+
+  document.getElementById('badge-pendientes').textContent = pendientes;
+
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="kpi-card"><div class="kpi-label">Total tickets</div><div class="kpi-val">${total}</div><div class="kpi-sub" style="color:var(--gray-400);">registrados</div><div class="kpi-bar" style="background:var(--blue-light);"></div></div>
+    <div class="kpi-card"><div class="kpi-label">Pendientes</div><div class="kpi-val" style="color:var(--amber);">${pendientes}</div><div class="kpi-sub" style="color:var(--amber);">por atender</div><div class="kpi-bar" style="background:var(--amber-light);"></div></div>
+    <div class="kpi-card"><div class="kpi-label">Resueltos</div><div class="kpi-val" style="color:var(--green);">${resueltos}</div><div class="kpi-sub" style="color:var(--green);">${tasa}% de resolución</div><div class="kpi-bar" style="background:var(--green-light);"></div></div>
+    <div class="kpi-card"><div class="kpi-label">Urgentes</div><div class="kpi-val" style="color:var(--red);">${urgentes}</div><div class="kpi-sub" style="color:var(--red);">alta prioridad</div><div class="kpi-bar" style="background:var(--red-light);"></div></div>`;
+
+  // Charts
+  const tipos    = ['Soporte técnico','Fallo de equipo','Problema con software','Acceso / contraseña','Red o conectividad','Capacitación','Otro'];
+  const tipoData = tipos.map(tp => tickets.filter(t=>t.tipo===tp).length);
+  if(chartTipo)   chartTipo.destroy();
+  if(chartEstado) chartEstado.destroy();
+
+  chartTipo = new Chart(document.getElementById('chart-tipo'), {
+    type:'bar',
+    data:{ labels:['Soporte','Fallo','Software','Acceso','Red','Capacit.','Otro'], datasets:[{ data:tipoData, backgroundColor:['#378ADD','#7F77DD','#1D9E75','#EF9F27','#E24B4A','#D4537E','#888780'], borderRadius:4, borderSkipped:false }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{font:{size:10}}}, y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{stepSize:1,font:{size:10}}} } }
+  });
+  chartEstado = new Chart(document.getElementById('chart-estado'), {
+    type:'doughnut',
+    data:{ labels:['Pendiente','En progreso','Resuelto'], datasets:[{ data:[pendientes, tickets.filter(t=>t.estado==='En progreso').length, resueltos], backgroundColor:['#EF9F27','#378ADD','#1D9E75'], borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12,boxWidth:12}}} }
+  });
+
+  // Recientes
+  const tbody = document.getElementById('tabla-recientes');
+  tbody.innerHTML = '';
+  tickets.slice(0,8).forEach(t => filaTicket(t, tbody));
+}
+
+// ── TICKETS ────────────────────────────────────────────
+async function cargarTickets() {
+  const estado    = document.getElementById('filt-estado').value;
+  const tipo      = document.getElementById('filt-tipo').value;
+  const area      = document.getElementById('filt-area').value;
+  const prioridad = document.getElementById('filt-prioridad').value;
+  let query = sb.from('tickets').select('*').order('created_at',{ascending:false});
+  if(estado)    query = query.eq('estado', estado);
+  if(tipo)      query = query.eq('tipo', tipo);
+  if(area)      query = query.eq('area', area);
+  if(prioridad) query = query.eq('prioridad', prioridad);
+  const { data } = await query;
+  const tbody = document.getElementById('tabla-tickets');
+  tbody.innerHTML = '';
+  if(!data || !data.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty">Sin tickets para los filtros seleccionados</div></td></tr>'; return; }
+  data.forEach(t => filaTicket(t, tbody));
+}
+
+function limpiarFiltros() {
+  ['filt-estado','filt-tipo','filt-area','filt-prioridad'].forEach(id => document.getElementById(id).value='');
+  cargarTickets();
+}
+
+// ── MODAL ──────────────────────────────────────────────
+async function abrirModal(id) {
+  const { data: t } = await sb.from('tickets').select('*').eq('id', id).single();
+  if(!t) return;
+  ticketActual = t;
+  document.getElementById('modal-codigo').textContent = t.codigo;
+  document.getElementById('modal-estado-select').value = t.estado;
+  document.getElementById('modal-obs').value = t.observaciones || '';
+  document.getElementById('modal-desc').textContent = t.descripcion;
+
+  document.getElementById('modal-detalle').innerHTML = `
+    <div class="detail-item"><label>Solicitante</label><p>${t.nombre}</p></div>
+    <div class="detail-item"><label>Área</label><p>${t.area}</p></div>
+    <div class="detail-item"><label>Correo</label><p style="font-size:12px;">${t.correo_solicitante}</p></div>
+    <div class="detail-item"><label>Tipo</label><p>${t.tipo}</p></div>
+    <div class="detail-item"><label>Equipo afectado</label><p>${t.equipo||'No especificado'}</p></div>
+    <div class="detail-item"><label>Prioridad</label><p>${pillPrioridad(t.prioridad)}</p></div>
+    <div class="detail-item"><label>Estado actual</label><p>${pillEstado(t.estado)}</p></div>
+    <div class="detail-item"><label>Fecha</label><p>${fmt(t.created_at)}</p></div>`;
+
+  // Imágenes
+  const imgWrap = document.getElementById('modal-imagenes-wrap');
+  const imgGrid = document.getElementById('modal-imagenes');
+  if(t.imagenes && t.imagenes.length > 0) {
+    imgGrid.innerHTML = t.imagenes.map(url => `<div class="img-thumb"><img src="${url}" onclick="window.open('${url}','_blank')"/></div>`).join('');
+    imgWrap.style.display = 'block';
+  } else {
+    imgWrap.style.display = 'none';
+  }
+
+  document.getElementById('modal-backdrop').classList.add('open');
+}
+
+function cerrarModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  ticketActual = null;
+}
+
+async function guardarTicket() {
+  if(!ticketActual) return;
+  const nuevoEstado = document.getElementById('modal-estado-select').value;
+  const obs         = document.getElementById('modal-obs').value.trim();
+  const btn         = document.getElementById('btn-guardar-ticket');
+  btn.innerHTML = '<span class="spinner"></span>Guardando...';
+  btn.disabled  = true;
+
+  const estadoCambio = nuevoEstado !== ticketActual.estado;
+
+  // Actualizar en Supabase
+  const { error } = await sb.from('tickets').update({
+    estado: nuevoEstado,
+    observaciones: obs,
+    updated_at: new Date().toISOString()
+  }).eq('id', ticketActual.id);
+
+  if(error) { toast('Error al guardar', 'error'); btn.textContent='Guardar y notificar empleado'; btn.disabled=false; return; }
+
+  // Notificar al empleado si cambió el estado
+  if(estadoCambio) {
+    try {
+      await emailjs.send(EJS_SERVICE, EJS_TPL_ESTADO, {
+        to_email:      ticketActual.correo_solicitante,
+        nombre:        ticketActual.nombre,
+        codigo:        ticketActual.codigo,
+        nuevo_estado:  nuevoEstado,
+        area:          ticketActual.area,
+        tipo:          ticketActual.tipo,
+        prioridad:     ticketActual.prioridad,
+        fecha:         fmt(new Date().toISOString()),
+        observaciones: obs || 'Sin observaciones adicionales.',
+      });
+      await sb.from('email_log').insert([{
+        ticket_codigo: ticketActual.codigo,
+        destinatario:  ticketActual.correo_solicitante,
+        tipo_correo:   `cambio_estado_${nuevoEstado.toLowerCase().replace(' ','_')}`,
+        enviado_at:    new Date().toISOString()
+      }]);
+    } catch(e) { console.error('Error enviando notificación:', e); }
+  }
+
+  toast('Ticket actualizado correctamente', 'ok');
+  btn.textContent = 'Guardar y notificar empleado';
+  btn.disabled = false;
+  cerrarModal();
+  cargarDashboard();
+  if(document.getElementById('view-tickets').classList.contains('active')) cargarTickets();
+}
+
+// ── CORREOS ────────────────────────────────────────────
+async function cargarCorreos() {
+  const { data } = await sb.from('email_log').select('*').order('enviado_at',{ascending:false});
+  const tbody = document.getElementById('tabla-correos');
+  tbody.innerHTML = '';
+  if(!data || !data.length) { tbody.innerHTML = '<tr><td colspan="4"><div class="empty">Sin registros de correos</div></td></tr>'; return; }
+  const tipoMap = {
+    'ticket_nuevo':'Ticket nuevo (sistemas)', 'ticket_nuevo_cc':'Ticket nuevo (CC)',
+    'constancia_solicitante':'Constancia empleado'
+  };
+  const tipoClass = { 'ticket_nuevo':'log-admin','ticket_nuevo_cc':'log-cc','constancia_solicitante':'log-empleado' };
+  data.forEach(c => {
+    const tr = document.createElement('tr');
+    const label = tipoMap[c.tipo_correo] || c.tipo_correo;
+    const cls   = tipoClass[c.tipo_correo] || (c.tipo_correo.includes('estado')?'log-estado':'log-admin');
+    tr.innerHTML = `
+      <td style="color:var(--gray-400);font-size:11px;white-space:nowrap;">${fmt(c.enviado_at)}</td>
+      <td class="mono">${c.ticket_codigo}</td>
+      <td style="font-size:12px;">${c.destinatario}</td>
+      <td><span class="log-chip ${cls}">${label}</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── INFORME ────────────────────────────────────────────
+// ── INFORME POR ACTIVIDADES ───────────────────────────
+let ticketsInforme = [];
+let seleccionados  = new Set();
+
+async function generarInforme() {
+  // Cargar todos los tickets del día por defecto
+  const hoy = new Date().toISOString().slice(0,10);
+  document.getElementById('inf-fecha-inicio').value = hoy;
+  document.getElementById('inf-fecha-fin').value    = hoy;
+  await cargarTicketsInforme();
+}
+
+async function cargarTicketsInforme() {
+  const inicio = document.getElementById('inf-fecha-inicio').value;
+  const fin    = document.getElementById('inf-fecha-fin').value;
+  let query    = sb.from('tickets').select('*').order('created_at', {ascending: false});
+  if(inicio) query = query.gte('created_at', inicio + 'T00:00:00');
+  if(fin)    query = query.lte('created_at', fin    + 'T23:59:59');
+  const { data } = await query;
+  ticketsInforme = data || [];
+  seleccionados  = new Set();
+  renderTablaInforme();
+  document.getElementById('informe-preview-wrap').style.display = 'none';
+}
+
+function renderTablaInforme() {
+  const tbody = document.getElementById('tabla-inf-tickets');
+  tbody.innerHTML = '';
+  if(!ticketsInforme.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty">Sin tickets para el rango de fechas seleccionado</div></td></tr>';
+    actualizarContador(); return;
+  }
+  ticketsInforme.forEach(t => {
+    const tr = document.createElement('tr');
+    const imgs = t.imagenes && t.imagenes.length > 0
+      ? `<span style="background:var(--blue-light);color:var(--blue-dark);padding:2px 7px;border-radius:100px;font-size:10px;font-weight:600;">${t.imagenes.length} foto${t.imagenes.length>1?'s':''}</span>`
+      : '<span style="color:var(--gray-400);font-size:11px;">—</span>';
+    tr.innerHTML = `
+      <td><input type="checkbox" class="chk-ticket" data-id="${t.id}" ${seleccionados.has(t.id)?'checked':''} onchange="toggleTicket(${t.id}, this.checked)"/></td>
+      <td class="mono">${t.codigo}</td>
+      <td style="max-width:200px;font-size:12px;">${t.tipo}</td>
+      <td style="font-size:12px;">${t.nombre}</td>
+      <td style="font-size:11px;color:var(--gray-600);">${t.area}</td>
+      <td>${pillEstado(t.estado)}</td>
+      <td style="font-size:11px;color:var(--gray-400);white-space:nowrap;">${fmtShort(t.created_at)}</td>
+      <td>${imgs}</td>`;
+    tbody.appendChild(tr);
+  });
+  actualizarContador();
+}
+
+function toggleTicket(id, checked) {
+  if(checked) seleccionados.add(id);
+  else seleccionados.delete(id);
+  actualizarContador();
+  previsualizarInforme();
+}
+
+function toggleTodos(checked) {
+  ticketsInforme.forEach(t => {
+    if(checked) seleccionados.add(t.id);
+    else seleccionados.delete(t.id);
+  });
+  document.querySelectorAll('.chk-ticket').forEach(c => c.checked = checked);
+  actualizarContador();
+  previsualizarInforme();
+}
+
+function seleccionarTodos()   { document.getElementById('chk-all').checked = true;  toggleTodos(true); }
+function deseleccionarTodos() { document.getElementById('chk-all').checked = false; toggleTodos(false); }
+
+function actualizarContador() {
+  const n = seleccionados.size;
+  document.getElementById('inf-contador').textContent = n > 0 ? `${n} ticket${n>1?'s':''} seleccionado${n>1?'s':''}` : '';
+}
+
+function previsualizarInforme() {
+  const sel = ticketsInforme.filter(t => seleccionados.has(t.id));
+  if(!sel.length) { document.getElementById('informe-preview-wrap').style.display = 'none'; return; }
+  const hoy = new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  let html = `
+    <div style="background:white;border:0.5px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;">
+      <div style="background:#185FA5;padding:16px 20px;">
+        <div style="color:white;font-size:15px;font-weight:600;">Informe de actividades — Departamento de Sistemas</div>
+        <div style="color:rgba(255,255,255,0.7);font-size:12px;margin-top:3px;">Salud Divina de la Costa SAS · NIT 901532386 · Generado: ${hoy}</div>
+      </div>`;
+
+  sel.forEach((t, i) => {
+    html += `
+      <div style="padding:20px;${i>0?'border-top:1px solid var(--gray-100)':''}">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="background:var(--blue-light);color:var(--blue-dark);font-family:DM Mono,monospace;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;">${t.codigo}</div>
+          ${pillEstado(t.estado)} ${pillPrioridad(t.prioridad)}
+          ${t.urgente?'<span style="background:var(--red-light);color:#A32D2D;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;">URGENTE</span>':''}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Actividad solicitada</div>
+            <div style="font-size:13px;font-weight:500;">${t.tipo}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Solicitado por</div>
+            <div style="font-size:13px;font-weight:500;">${t.nombre}</div>
+            <div style="font-size:11px;color:var(--gray-400);">${t.area}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Fecha de reporte</div>
+            <div style="font-size:13px;font-weight:500;">${fmt(t.created_at)}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Equipo afectado</div>
+            <div style="font-size:13px;">${t.equipo||'No especificado'}</div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;">Descripción del problema</div>
+          <div style="background:var(--gray-50);border:0.5px solid var(--gray-200);border-radius:6px;padding:10px;font-size:13px;line-height:1.6;">${t.descripcion}</div>
+        </div>
+        ${t.observaciones ? `
+        <div style="margin-bottom:12px;">
+          <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;">Observaciones del equipo de sistemas</div>
+          <div style="background:var(--green-light);border:0.5px solid #9FE1CB;border-radius:6px;padding:10px;font-size:13px;line-height:1.6;">${t.observaciones}</div>
+        </div>` : ''}
+        ${t.imagenes && t.imagenes.length > 0 ? `
+        <div>
+          <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Evidencias fotográficas (${t.imagenes.length})</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            ${t.imagenes.map((url,j) => `<div style="aspect-ratio:1;border-radius:6px;overflow:hidden;border:0.5px solid var(--gray-200);"><img src="${url}" style="width:100%;height:100%;object-fit:cover;" onclick="window.open('${url}','_blank')"/></div>`).join('')}
+          </div>
+        </div>` : '<div style="font-size:12px;color:var(--gray-400);">Sin evidencias fotográficas adjuntas.</div>'}
+      </div>`;
+  });
+
+  html += '</div>';
+  document.getElementById('informe-preview').innerHTML = html;
+  document.getElementById('informe-preview-wrap').style.display = 'block';
+}
+
+async function exportarPDFSeleccion() {
+  const sel = ticketsInforme.filter(t => seleccionados.has(t.id));
+  if(!sel.length) { toast('Selecciona al menos un ticket', 'error'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const hoy = new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  let y = 14;
+
+  // Encabezado
+  doc.setFillColor(24, 95, 165);
+  doc.rect(0, 0, 210, 28, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.text('Informe de Actividades — Dpto. de Sistemas', 14, 11);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text(`Salud Divina de la Costa SAS · NIT 901532386 · ${hoy}`, 14, 20);
+  doc.setTextColor(0); y = 38;
+
+  for(const t of sel) {
+    if(y > 240) { doc.addPage(); y = 14; }
+
+    // Separador por ticket
+    doc.setFillColor(240,242,245);
+    doc.rect(10, y-4, 190, 8, 'F');
+    doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.setTextColor(24,95,165);
+    doc.text(`${t.codigo}  ·  ${t.tipo}`, 14, y+1);
+    doc.setTextColor(0); y += 12;
+
+    doc.setFontSize(9); doc.setFont('helvetica','bold');
+    doc.text('Actividad solicitada:', 14, y);
+    doc.setFont('helvetica','normal');
+    doc.text(t.tipo, 60, y); y += 7;
+
+    doc.setFont('helvetica','bold');
+    doc.text('Solicitado por:', 14, y);
+    doc.setFont('helvetica','normal');
+    doc.text(`${t.nombre} — ${t.area}`, 60, y); y += 7;
+
+    doc.setFont('helvetica','bold');
+    doc.text('Fecha de reporte:', 14, y);
+    doc.setFont('helvetica','normal');
+    doc.text(fmt(t.created_at), 60, y); y += 7;
+
+    doc.setFont('helvetica','bold');
+    doc.text('Estado:', 14, y);
+    doc.setFont('helvetica','normal');
+    doc.text(`${t.estado} · Prioridad: ${t.prioridad}`, 60, y); y += 7;
+
+    doc.setFont('helvetica','bold');
+    doc.text('Equipo afectado:', 14, y);
+    doc.setFont('helvetica','normal');
+    doc.text(t.equipo||'No especificado', 60, y); y += 7;
+
+    doc.setFont('helvetica','bold');
+    doc.text('Descripción:', 14, y); y += 5;
+    doc.setFont('helvetica','normal');
+    const descLines = doc.splitTextToSize(t.descripcion, 180);
+    doc.text(descLines, 14, y);
+    y += descLines.length * 5 + 3;
+
+    if(t.observaciones) {
+      if(y > 240) { doc.addPage(); y = 14; }
+      doc.setFont('helvetica','bold');
+      doc.text('Observaciones de sistemas:', 14, y); y += 5;
+      doc.setFont('helvetica','normal');
+      const obsLines = doc.splitTextToSize(t.observaciones, 180);
+      doc.text(obsLines, 14, y);
+      y += obsLines.length * 5 + 3;
+    }
+
+    if(t.imagenes && t.imagenes.length > 0) {
+      if(y > 240) { doc.addPage(); y = 14; }
+      doc.setFont('helvetica','bold');
+      doc.text(`Evidencias fotográficas (${t.imagenes.length}):`, 14, y); y += 5;
+      doc.setFont('helvetica','normal');
+      t.imagenes.forEach((url, i) => {
+        doc.setTextColor(24,95,165);
+        doc.text(`Imagen ${i+1}: ${url}`, 14, y);
+        doc.setTextColor(0); y += 5;
+      });
+    }
+    y += 8;
+    doc.setDrawColor(220); doc.line(10, y-4, 200, y-4);
+  }
+
+  doc.save(`informe-actividades-sdc-${new Date().toISOString().slice(0,10)}.pdf`);
+  toast('PDF descargado', 'ok');
+}
+
+async function exportarMasivo() {
+  const { data: tickets } = await sb.from('tickets').select('*').order('created_at',{ascending:false});
+  if(!tickets || !tickets.length) { toast('Sin datos para exportar', 'error'); return; }
+  const cols = ['codigo','nombre','area','correo_solicitante','tipo','equipo','descripcion','prioridad','estado','urgente','created_at','updated_at','observaciones'];
+  const csv  = [cols.join(','), ...tickets.map(t => cols.map(c => `"${(t[c]||'').toString().replace(/"/g,'""')}"`).join(','))].join('\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `tickets-sdc-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('CSV descargado', 'ok');
+}
+
+// ── Cerrar modal con Escape ────────────────────────────
+document.addEventListener('keydown', e => { if(e.key==='Escape') cerrarModal(); });
+document.getElementById('modal-backdrop').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarModal(); });
+</script>
+</body>
+</html>
