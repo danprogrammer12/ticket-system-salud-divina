@@ -127,10 +127,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-50); color: va
 .topbar-title { font-size: 15px; font-weight: 600; color: var(--gray-900); }
 .topbar-right { display: flex; align-items: center; gap: 10px; }
 .topbar-date  { font-size: 12px; color: var(--gray-400); }
-.topbar-user  {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 12px; color: var(--gray-600);
-}
+.topbar-user  { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--gray-600); }
 .topbar-avatar {
   width: 28px; height: 28px; border-radius: 50%; background: var(--blue-light);
   display: flex; align-items: center; justify-content: center;
@@ -195,16 +192,22 @@ tr:hover td { background: var(--gray-50); }
 
 .mono { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--gray-600); }
 .pill { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+
+/* Estado */
 .p-pendiente { background: #FCEBEB; color: #A32D2D; border: 1px solid #F09595; }
 .p-progreso  { background: #FAEEDA; color: #854F0B; border: 1px solid #FAC775; }
 .p-resuelto  { background: #EAF3DE; color: #27500A; border: 1px solid #C0DD97; }
-.p-alta      { background: var(--red-light);   color: #A32D2D; }
-.p-normal    { background: var(--gray-100);    color: var(--gray-600); }
-.t-soporte   { background: var(--blue-light);   color: var(--blue-dark); }
-.t-mant      { background: var(--amber-light);  color: #633806; }
-.t-usuario   { background: var(--green-light);  color: #085041; }
-.t-proyecto  { background: var(--purple-light); color: #3C3489; }
-.t-otro      { background: var(--gray-100);     color: var(--gray-600); }
+
+/* Prioridad — 3 niveles según lineamiento */
+.p-alta   { background: var(--red-light);    color: #A32D2D; border: 1px solid #F09595; }
+.p-media  { background: var(--amber-light);  color: #633806; border: 1px solid #FAC775; }
+.p-baja   { background: var(--gray-100);     color: var(--gray-600); border: 1px solid var(--gray-200); }
+
+/* Categoría — 4 tipos según lineamiento */
+.t-soporte        { background: var(--blue-light);   color: var(--blue-dark); }
+.t-parametrizacion{ background: var(--purple-light); color: #3C3489; }
+.t-usuarios       { background: var(--green-light);  color: #085041; }
+.t-instalaciones  { background: var(--amber-light);  color: #633806; }
 
 .btn-ver {
   padding: 4px 10px; font-size: 11px; border: 0.5px solid var(--gray-200);
@@ -212,6 +215,15 @@ tr:hover td { background: var(--gray-50); }
   cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
 }
 .btn-ver:hover { background: var(--blue); color: white; border-color: var(--blue); }
+
+/* ── HORARIO BANNER ── */
+.horario-banner {
+  background: var(--amber-light); border: 1px solid #FAC775;
+  border-radius: var(--radius-sm); padding: 10px 14px;
+  font-size: 12px; color: #633806; margin-bottom: 14px;
+  display: none; align-items: center; gap: 8px;
+}
+.horario-banner.show { display: flex; }
 
 /* ── MODAL ── */
 .modal-backdrop {
@@ -258,8 +270,7 @@ tr:hover td { background: var(--gray-50); }
   width: 100%; padding: 10px 12px; border: 0.5px solid var(--gray-200);
   border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif;
   font-size: 13px; background: var(--gray-50); color: var(--gray-900);
-  resize: vertical; min-height: 80px; outline: none;
-  transition: border-color 0.15s;
+  resize: vertical; min-height: 80px; outline: none; transition: border-color 0.15s;
 }
 .obs-textarea:focus { border-color: var(--blue-mid); background: white; }
 
@@ -273,27 +284,11 @@ tr:hover td { background: var(--gray-50); }
 }
 
 /* ── LOG TABLE ── */
-.log-chip {
-  display: inline-block; padding: 2px 8px; border-radius: 100px;
-  font-size: 10px; font-weight: 600;
-}
-.log-admin    { background: var(--blue-light);  color: var(--blue-dark); }
+.log-chip { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 600; }
+.log-admin    { background: var(--blue-light);   color: var(--blue-dark); }
 .log-cc       { background: var(--purple-light); color: #3C3489; }
-.log-empleado { background: var(--green-light); color: #085041; }
-.log-estado   { background: var(--amber-light); color: #633806; }
-
-/* ── INFORME ── */
-.informe-preview {
-  background: var(--gray-50); border: 0.5px solid var(--gray-200);
-  border-radius: var(--radius); padding: 20px; font-size: 13px;
-  line-height: 1.8; color: var(--gray-900);
-}
-.informe-preview h4 { font-size: 14px; font-weight: 600; margin: 14px 0 6px; color: var(--gray-900); }
-.informe-preview h4:first-child { margin-top: 0; }
-.inf-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 0.5px solid var(--gray-200); }
-.inf-row:last-child { border-bottom: none; }
-.inf-key { color: var(--gray-600); }
-.inf-val { font-weight: 500; }
+.log-empleado { background: var(--green-light);  color: #085041; }
+.log-estado   { background: var(--amber-light);  color: #633806; }
 
 /* ── SPINNER ── */
 .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 5px; }
@@ -314,10 +309,22 @@ tr:hover td { background: var(--gray-50); }
 /* ── EMPTY STATE ── */
 .empty { text-align: center; padding: 40px; color: var(--gray-400); font-size: 13px; }
 
+/* ── LINEAMIENTO INFO ── */
+.lineamiento-card {
+  background: var(--blue-light); border: 1px solid #B8D8F5;
+  border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px;
+  font-size: 12px; color: var(--blue-dark);
+}
+.lineamiento-card strong { display: block; margin-bottom: 6px; font-size: 13px; }
+.lineamiento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 8px; }
+.lin-item { background: white; border-radius: 6px; padding: 8px 10px; }
+.lin-item .lin-tipo { font-weight: 600; font-size: 12px; }
+.lin-item .lin-hora { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+
 @media (max-width: 900px) {
-  .kpi-grid    { grid-template-columns: 1fr 1fr; }
-  .charts-row  { grid-template-columns: 1fr; }
-  .sidebar     { width: 180px; }
+  .kpi-grid   { grid-template-columns: 1fr 1fr; }
+  .charts-row { grid-template-columns: 1fr; }
+  .sidebar    { width: 180px; }
 }
 </style>
 </head>
@@ -405,10 +412,17 @@ tr:hover td { background: var(--gray-50); }
 
         <!-- ── DASHBOARD ── -->
         <div class="view active" id="view-dashboard">
+
+          <!-- Aviso de horario fuera de franja -->
+          <div class="horario-banner" id="horario-banner">
+            ⏰ <span>Estás fuera del horario de digitación de parametrización (8:00 AM – 11:00 AM). Las solicitudes de parametrización recibidas en este horario se atienden en la siguiente jornada.</span>
+          </div>
+
           <div class="kpi-grid" id="kpi-grid"></div>
+
           <div class="charts-row">
             <div class="chart-card">
-              <div class="chart-card-title">Tickets por tipo</div>
+              <div class="chart-card-title">Tickets por categoría</div>
               <div class="chart-wrap"><canvas id="chart-tipo"></canvas></div>
             </div>
             <div class="chart-card">
@@ -416,19 +430,46 @@ tr:hover td { background: var(--gray-50); }
               <div class="chart-wrap"><canvas id="chart-estado"></canvas></div>
             </div>
           </div>
+
           <div class="table-card">
             <div style="padding:14px 16px; border-bottom:0.5px solid var(--gray-200);">
               <span style="font-size:13px;font-weight:600;">Tickets recientes</span>
             </div>
             <div class="table-wrap">
-              <table><thead><tr><th>Código</th><th>Solicitante</th><th>Área</th><th>Tipo</th><th>Estado</th><th>Prioridad</th><th>Fecha</th><th></th></tr></thead>
-              <tbody id="tabla-recientes"></tbody></table>
+              <table>
+                <thead><tr><th>Código</th><th>Solicitante</th><th>Área</th><th>Categoría</th><th>Estado</th><th>Prioridad</th><th>Fecha</th><th></th></tr></thead>
+                <tbody id="tabla-recientes"></tbody>
+              </table>
             </div>
           </div>
         </div>
 
         <!-- ── TICKETS ── -->
         <div class="view" id="view-tickets">
+
+          <!-- Info lineamiento -->
+          <div class="lineamiento-card">
+            <strong>📋 Horarios de atención según lineamiento institucional</strong>
+            <div class="lineamiento-grid">
+              <div class="lin-item">
+                <div class="lin-tipo">🔧 Soporte técnico</div>
+                <div class="lin-hora">8:00 AM – 5:00 PM</div>
+              </div>
+              <div class="lin-item">
+                <div class="lin-tipo">⚙️ Parametrización</div>
+                <div class="lin-hora">8:00 AM – 11:00 AM</div>
+              </div>
+              <div class="lin-item">
+                <div class="lin-tipo">👤 Usuarios</div>
+                <div class="lin-hora">8:00 AM – 3:00 PM</div>
+              </div>
+              <div class="lin-item">
+                <div class="lin-tipo">💻 Instalaciones</div>
+                <div class="lin-hora">8:00 AM – 3:00 PM</div>
+              </div>
+            </div>
+          </div>
+
           <div class="filters">
             <select class="filter-select" id="filt-estado" onchange="cargarTickets()">
               <option value="">Todos los estados</option>
@@ -437,12 +478,17 @@ tr:hover td { background: var(--gray-50); }
               <option value="Resuelto">Resuelto</option>
             </select>
             <select class="filter-select" id="filt-tipo" onchange="cargarTickets()">
-              <option value="">Todos los tipos</option>
-              <option>Soporte técnico</option><option>Fallo de equipo</option>
-              <option>Problema con software</option><option>Acceso / contraseña</option>
-              <option>Red o conectividad</option><option>Impresora o periférico</option>
-              <option>Instalación de programa</option><option>Solicitud de usuario nuevo</option>
-              <option>Capacitación</option><option>Otro</option>
+              <option value="">Todas las categorías</option>
+              <option value="Soporte técnico">Soporte técnico</option>
+              <option value="Parametrización">Parametrización</option>
+              <option value="Gestión de usuarios">Gestión de usuarios</option>
+              <option value="Instalaciones y configuraciones">Instalaciones y configuraciones</option>
+            </select>
+            <select class="filter-select" id="filt-prioridad" onchange="cargarTickets()">
+              <option value="">Toda prioridad</option>
+              <option value="Alta">Alta</option>
+              <option value="Media">Media</option>
+              <option value="Baja">Baja</option>
             </select>
             <select class="filter-select" id="filt-area" onchange="cargarTickets()">
               <option value="">Todas las áreas</option>
@@ -451,17 +497,15 @@ tr:hover td { background: var(--gray-50); }
               <option>UCI</option><option>Hospitalización</option><option>Consulta externa</option>
               <option>Facturación electrónica</option><option>Auxiliar de admisiones</option>
             </select>
-            <select class="filter-select" id="filt-prioridad" onchange="cargarTickets()">
-              <option value="">Toda prioridad</option>
-              <option value="Alta">Alta</option>
-              <option value="Normal">Normal</option>
-            </select>
             <button class="btn-sm" onclick="limpiarFiltros()">Limpiar</button>
           </div>
+
           <div class="table-card">
             <div class="table-wrap">
-              <table><thead><tr><th>Código</th><th>Solicitante</th><th>Área</th><th>Tipo</th><th>Estado</th><th>Prioridad</th><th>Fecha</th><th></th></tr></thead>
-              <tbody id="tabla-tickets"></tbody></table>
+              <table>
+                <thead><tr><th>Código</th><th>Solicitante</th><th>Área</th><th>Categoría</th><th>Estado</th><th>Prioridad</th><th>Fecha</th><th></th></tr></thead>
+                <tbody id="tabla-tickets"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -473,8 +517,10 @@ tr:hover td { background: var(--gray-50); }
               <span style="font-size:13px;font-weight:600;">Historial de correos enviados</span>
             </div>
             <div class="table-wrap">
-              <table><thead><tr><th>Fecha</th><th>Ticket</th><th>Destinatario</th><th>Tipo</th></tr></thead>
-              <tbody id="tabla-correos"></tbody></table>
+              <table>
+                <thead><tr><th>Fecha</th><th>Ticket</th><th>Destinatario</th><th>Tipo</th></tr></thead>
+                <tbody id="tabla-correos"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -484,7 +530,7 @@ tr:hover td { background: var(--gray-50); }
           <div class="section-hdr">
             <h3>Informe por actividades</h3>
             <div style="display:flex;gap:8px;">
-              <button class="btn-sm primary" id="btn-pdf-sel" onclick="exportarPDFSeleccion()">Exportar PDF seleccionados</button>
+              <button class="btn-sm primary" onclick="exportarPDFSeleccion()">Exportar PDF seleccionados</button>
               <button class="btn-sm" onclick="exportarMasivo()">Exportar CSV masivo</button>
             </div>
           </div>
@@ -492,7 +538,7 @@ tr:hover td { background: var(--gray-50); }
           <div style="background:white;border:0.5px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-bottom:16px;">
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
               <div>
-                <div style="font-size:11px;color:var(--gray-400);font-weight:500;margin-bottom:4px;">Filtrar por fecha</div>
+                <div style="font-size:11px;color:var(--gray-400);font-weight:500;margin-bottom:4px;">Desde</div>
                 <input type="date" id="inf-fecha-inicio" style="padding:6px 10px;font-size:12px;border:0.5px solid var(--gray-200);border-radius:6px;font-family:DM Sans,sans-serif;"/>
               </div>
               <div>
@@ -511,7 +557,7 @@ tr:hover td { background: var(--gray-50); }
               <table>
                 <thead><tr>
                   <th style="width:36px;"><input type="checkbox" id="chk-all" onchange="toggleTodos(this.checked)"/></th>
-                  <th>Código</th><th>Actividad solicitada</th><th>Solicitante</th><th>Área</th><th>Estado</th><th>Fecha</th><th>Imágenes</th>
+                  <th>Código</th><th>Categoría</th><th>Solicitante</th><th>Área</th><th>Estado</th><th>Prioridad</th><th>Fecha</th>
                 </tr></thead>
                 <tbody id="tabla-inf-tickets"></tbody>
               </table>
@@ -573,12 +619,12 @@ tr:hover td { background: var(--gray-50); }
 
 <script>
 // ══════════════════════════════════════════════════════════
-// CONFIGURACIÓN
+// CONFIGURACIÓN — credenciales del proyecto
 // ══════════════════════════════════════════════════════════
 const SUPABASE_URL  = 'https://dbxmdirpldepmyscrrka.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRieG1kaXJwbGRlcG15c2NycmthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ5NjczOTksImV4cCI6MjA5MDU0MzM5OX0.VHiqjePoR6tnnYcrzTTo_YWHGzk0lLkwau7DIsvryT0';
 const EJS_SERVICE   = 'service_xiujw2n';
-const EJS_TPL_ESTADO= 'template_nu8c6df'; // plantilla notificacion cambio de estado
+const EJS_TPL_ESTADO= 'template_nu8c6df';
 const EJS_PUBLIC_KEY= 'Ri7dMXwR6tse7Vmxe';
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -587,14 +633,47 @@ emailjs.init(EJS_PUBLIC_KEY);
 let ticketActual = null;
 let chartTipo = null, chartEstado = null;
 
-// ── Fecha ──────────────────────────────────────────────
-document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-CO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+// ── Categorías según lineamiento ──────────────────────
+const CATEGORIAS = [
+  'Soporte técnico',
+  'Parametrización',
+  'Gestión de usuarios',
+  'Instalaciones y configuraciones'
+];
+
+// ── Horarios según lineamiento ────────────────────────
+const HORARIOS = {
+  'Soporte técnico':                { inicio: 8, fin: 17 },
+  'Parametrización':                { inicio: 8, fin: 11 },
+  'Gestión de usuarios':            { inicio: 8, fin: 15 },
+  'Instalaciones y configuraciones':{ inicio: 8, fin: 15 }
+};
+
+// ── Fecha y hora ──────────────────────────────────────
+document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('es-CO', {
+  weekday:'long', year:'numeric', month:'long', day:'numeric'
+});
+
+function verificarHorario() {
+  const hora = new Date().getHours();
+  const banner = document.getElementById('horario-banner');
+  // Mostrar si está fuera del horario de parametrización (8-11)
+  if(hora < 8 || hora >= 11) {
+    banner.classList.add('show');
+  } else {
+    banner.classList.remove('show');
+  }
+}
 
 function fmt(iso) {
-  return new Date(iso).toLocaleString('es-CO', { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+  return new Date(iso).toLocaleString('es-CO', {
+    year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'
+  });
 }
 function fmtShort(iso) {
-  return new Date(iso).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
+  return new Date(iso).toLocaleDateString('es-CO', {
+    day:'2-digit', month:'short', year:'numeric'
+  });
 }
 
 // ── Toast ──────────────────────────────────────────────
@@ -606,7 +685,9 @@ function toast(msg, type='') {
 }
 
 // ── LOGIN ──────────────────────────────────────────────
-document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if(e.key === 'Enter') doLogin();
+});
 
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
@@ -622,11 +703,12 @@ async function doLogin() {
     btn.textContent = 'Ingresar'; btn.disabled = false; return;
   }
   const u = data.user.email;
-  document.getElementById('sid-email').textContent   = u;
+  document.getElementById('sid-email').textContent    = u;
   document.getElementById('topbar-email').textContent = u.split('@')[0];
   document.getElementById('topbar-avatar').textContent = u.substring(0,2).toUpperCase();
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display   = 'flex';
+  verificarHorario();
   cargarDashboard();
 }
 
@@ -636,33 +718,50 @@ async function doLogout() {
 }
 
 // ── VIEWS ──────────────────────────────────────────────
-const titulos = { dashboard:'Dashboard', tickets:'Gestión de tickets', correos:'Correos enviados', informe:'Informe ejecutivo' };
+const titulos = {
+  dashboard: 'Dashboard',
+  tickets:   'Gestión de tickets',
+  correos:   'Correos enviados',
+  informe:   'Informe ejecutivo'
+};
+
 function showView(v) {
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.sid-item').forEach(el => el.classList.remove('active'));
-  document.getElementById('view-'+v).classList.add('active');
-  document.querySelectorAll('.sid-item')[['dashboard','tickets','correos','informe'].indexOf(v)].classList.add('active');
+  document.getElementById('view-' + v).classList.add('active');
+  const idx = ['dashboard','tickets','correos','informe'].indexOf(v);
+  document.querySelectorAll('.sid-item')[idx].classList.add('active');
   document.getElementById('topbar-title').textContent = titulos[v] || v;
-  if(v==='tickets')  cargarTickets();
-  if(v==='correos')  cargarCorreos();
-  if(v==='informe')  generarInforme();
+  if(v === 'tickets') cargarTickets();
+  if(v === 'correos') cargarCorreos();
+  if(v === 'informe') generarInforme();
 }
 
 // ── PILLS ──────────────────────────────────────────────
 function pillEstado(e) {
-  const cls = {Pendiente:'p-pendiente','En progreso':'p-progreso',Resuelto:'p-resuelto'};
+  const cls = { Pendiente:'p-pendiente', 'En progreso':'p-progreso', Resuelto:'p-resuelto' };
   return `<span class="pill ${cls[e]||'p-pendiente'}">${e}</span>`;
 }
+
 function pillPrioridad(p) {
-  return `<span class="pill ${p==='Alta'?'p-alta':'p-normal'}">${p}</span>`;
+  const cls = { Alta:'p-alta', Media:'p-media', Baja:'p-baja' };
+  return `<span class="pill ${cls[p]||'p-baja'}">${p||'Baja'}</span>`;
 }
-function pillTipo(t) {
-  let cls = 't-otro';
-  if(t.includes('Soporte')||t.includes('Fallo')||t.includes('Red')||t.includes('Impresora')) cls='t-soporte';
-  else if(t.includes('software')||t.includes('programa')) cls='t-mant';
-  else if(t.includes('Acceso')||t.includes('usuario')) cls='t-usuario';
-  else if(t.includes('Capacitación')) cls='t-proyecto';
-  return `<span class="pill ${cls}">${t}</span>`;
+
+function pillCategoria(t) {
+  const map = {
+    'Soporte técnico':                 't-soporte',
+    'Parametrización':                 't-parametrizacion',
+    'Gestión de usuarios':             't-usuarios',
+    'Instalaciones y configuraciones': 't-instalaciones'
+  };
+  // Compatibilidad con tipos viejos
+  let cls = 't-soporte';
+  if(t && t.toLowerCase().includes('param'))    cls = 't-parametrizacion';
+  else if(t && (t.toLowerCase().includes('usuario') || t.toLowerCase().includes('acceso') || t.toLowerCase().includes('contraseña'))) cls = 't-usuarios';
+  else if(t && (t.toLowerCase().includes('instal') || t.toLowerCase().includes('configur') || t.toLowerCase().includes('programa'))) cls = 't-instalaciones';
+  else if(map[t]) cls = map[t];
+  return `<span class="pill ${cls}">${t||'—'}</span>`;
 }
 
 function filaTicket(t, tbody) {
@@ -671,7 +770,7 @@ function filaTicket(t, tbody) {
     <td class="mono">${t.codigo}</td>
     <td>${t.nombre}</td>
     <td style="color:var(--gray-600);font-size:11px;">${t.area}</td>
-    <td>${pillTipo(t.tipo)}</td>
+    <td>${pillCategoria(t.tipo)}</td>
     <td>${pillEstado(t.estado)}</td>
     <td>${pillPrioridad(t.prioridad)}</td>
     <td style="color:var(--gray-400);font-size:11px;white-space:nowrap;">${fmtShort(t.created_at)}</td>
@@ -685,40 +784,92 @@ async function cargarDashboard() {
   if(!tickets) return;
 
   const total      = tickets.length;
-  const pendientes = tickets.filter(t=>t.estado==='Pendiente').length;
-  const resueltos  = tickets.filter(t=>t.estado==='Resuelto').length;
-  const urgentes   = tickets.filter(t=>t.prioridad==='Alta').length;
-  const tasa       = total ? Math.round(resueltos/total*100) : 0;
+  const pendientes = tickets.filter(t => t.estado === 'Pendiente').length;
+  const progreso   = tickets.filter(t => t.estado === 'En progreso').length;
+  const resueltos  = tickets.filter(t => t.estado === 'Resuelto').length;
+  const urgentes   = tickets.filter(t => t.prioridad === 'Alta').length;
+  const tasa       = total ? Math.round(resueltos / total * 100) : 0;
 
   document.getElementById('badge-pendientes').textContent = pendientes;
 
   document.getElementById('kpi-grid').innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">Total tickets</div><div class="kpi-val">${total}</div><div class="kpi-sub" style="color:var(--gray-400);">registrados</div><div class="kpi-bar" style="background:var(--blue-light);"></div></div>
-    <div class="kpi-card"><div class="kpi-label">Pendientes</div><div class="kpi-val" style="color:var(--amber);">${pendientes}</div><div class="kpi-sub" style="color:var(--amber);">por atender</div><div class="kpi-bar" style="background:var(--amber-light);"></div></div>
-    <div class="kpi-card"><div class="kpi-label">Resueltos</div><div class="kpi-val" style="color:var(--green);">${resueltos}</div><div class="kpi-sub" style="color:var(--green);">${tasa}% de resolución</div><div class="kpi-bar" style="background:var(--green-light);"></div></div>
-    <div class="kpi-card"><div class="kpi-label">Urgentes</div><div class="kpi-val" style="color:var(--red);">${urgentes}</div><div class="kpi-sub" style="color:var(--red);">alta prioridad</div><div class="kpi-bar" style="background:var(--red-light);"></div></div>`;
+    <div class="kpi-card">
+      <div class="kpi-label">Total tickets</div>
+      <div class="kpi-val">${total}</div>
+      <div class="kpi-sub" style="color:var(--gray-400);">registrados</div>
+      <div class="kpi-bar" style="background:var(--blue-light);"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Pendientes</div>
+      <div class="kpi-val" style="color:var(--amber);">${pendientes}</div>
+      <div class="kpi-sub" style="color:var(--amber);">por atender</div>
+      <div class="kpi-bar" style="background:var(--amber-light);"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Resueltos</div>
+      <div class="kpi-val" style="color:var(--green);">${resueltos}</div>
+      <div class="kpi-sub" style="color:var(--green);">${tasa}% de resolución</div>
+      <div class="kpi-bar" style="background:var(--green-light);"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Alta prioridad</div>
+      <div class="kpi-val" style="color:var(--red);">${urgentes}</div>
+      <div class="kpi-sub" style="color:var(--red);">requieren atención</div>
+      <div class="kpi-bar" style="background:var(--red-light);"></div>
+    </div>`;
 
-  // Charts
-  const tipos    = ['Soporte técnico','Fallo de equipo','Problema con software','Acceso / contraseña','Red o conectividad','Capacitación','Otro'];
-  const tipoData = tipos.map(tp => tickets.filter(t=>t.tipo===tp).length);
+  // Charts — categorías del lineamiento
+  const catData = CATEGORIAS.map(c => tickets.filter(t => {
+    if(c === 'Soporte técnico') return t.tipo === c || ['Fallo de equipo','Red o conectividad','Impresora o periférico','Problema con software'].includes(t.tipo);
+    if(c === 'Gestión de usuarios') return t.tipo === c || ['Acceso / contraseña','Solicitud de usuario nuevo'].includes(t.tipo);
+    if(c === 'Instalaciones y configuraciones') return t.tipo === c || ['Instalación de programa'].includes(t.tipo);
+    return t.tipo === c;
+  }).length);
+
   if(chartTipo)   chartTipo.destroy();
   if(chartEstado) chartEstado.destroy();
 
   chartTipo = new Chart(document.getElementById('chart-tipo'), {
-    type:'bar',
-    data:{ labels:['Soporte','Fallo','Software','Acceso','Red','Capacit.','Otro'], datasets:[{ data:tipoData, backgroundColor:['#378ADD','#7F77DD','#1D9E75','#EF9F27','#E24B4A','#D4537E','#888780'], borderRadius:4, borderSkipped:false }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false},ticks:{font:{size:10}}}, y:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{stepSize:1,font:{size:10}}} } }
+    type: 'bar',
+    data: {
+      labels: ['Soporte', 'Param.', 'Usuarios', 'Instal.'],
+      datasets: [{
+        data: catData,
+        backgroundColor: ['#378ADD','#7F77DD','#1D9E75','#EF9F27'],
+        borderRadius: 4, borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1, font: { size: 10 } } }
+      }
+    }
   });
+
   chartEstado = new Chart(document.getElementById('chart-estado'), {
-    type:'doughnut',
-    data:{ labels:['Pendiente','En progreso','Resuelto'], datasets:[{ data:[pendientes, tickets.filter(t=>t.estado==='En progreso').length, resueltos], backgroundColor:['#EF9F27','#378ADD','#1D9E75'], borderWidth:0 }] },
-    options:{ responsive:true, maintainAspectRatio:false, cutout:'62%', plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12,boxWidth:12}}} }
+    type: 'doughnut',
+    data: {
+      labels: ['Pendiente','En progreso','Resuelto'],
+      datasets: [{
+        data: [pendientes, progreso, resueltos],
+        backgroundColor: ['#EF9F27','#378ADD','#1D9E75'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12, boxWidth: 12 } } }
+    }
   });
 
   // Recientes
   const tbody = document.getElementById('tabla-recientes');
   tbody.innerHTML = '';
-  tickets.slice(0,8).forEach(t => filaTicket(t, tbody));
+  tickets.slice(0, 8).forEach(t => filaTicket(t, tbody));
 }
 
 // ── TICKETS ────────────────────────────────────────────
@@ -727,20 +878,25 @@ async function cargarTickets() {
   const tipo      = document.getElementById('filt-tipo').value;
   const area      = document.getElementById('filt-area').value;
   const prioridad = document.getElementById('filt-prioridad').value;
-  let query = sb.from('tickets').select('*').order('created_at',{ascending:false});
+
+  let query = sb.from('tickets').select('*').order('created_at', { ascending: false });
   if(estado)    query = query.eq('estado', estado);
   if(tipo)      query = query.eq('tipo', tipo);
   if(area)      query = query.eq('area', area);
   if(prioridad) query = query.eq('prioridad', prioridad);
+
   const { data } = await query;
   const tbody = document.getElementById('tabla-tickets');
   tbody.innerHTML = '';
-  if(!data || !data.length) { tbody.innerHTML = '<tr><td colspan="8"><div class="empty">Sin tickets para los filtros seleccionados</div></td></tr>'; return; }
+  if(!data || !data.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty">Sin tickets para los filtros seleccionados</div></td></tr>';
+    return;
+  }
   data.forEach(t => filaTicket(t, tbody));
 }
 
 function limpiarFiltros() {
-  ['filt-estado','filt-tipo','filt-area','filt-prioridad'].forEach(id => document.getElementById(id).value='');
+  ['filt-estado','filt-tipo','filt-area','filt-prioridad'].forEach(id => document.getElementById(id).value = '');
   cargarTickets();
 }
 
@@ -749,26 +905,27 @@ async function abrirModal(id) {
   const { data: t } = await sb.from('tickets').select('*').eq('id', id).single();
   if(!t) return;
   ticketActual = t;
-  document.getElementById('modal-codigo').textContent = t.codigo;
-  document.getElementById('modal-estado-select').value = t.estado;
-  document.getElementById('modal-obs').value = t.observaciones || '';
-  document.getElementById('modal-desc').textContent = t.descripcion;
+  document.getElementById('modal-codigo').textContent     = t.codigo;
+  document.getElementById('modal-estado-select').value    = t.estado;
+  document.getElementById('modal-obs').value              = t.observaciones || '';
+  document.getElementById('modal-desc').textContent       = t.descripcion;
 
   document.getElementById('modal-detalle').innerHTML = `
     <div class="detail-item"><label>Solicitante</label><p>${t.nombre}</p></div>
     <div class="detail-item"><label>Área</label><p>${t.area}</p></div>
     <div class="detail-item"><label>Correo</label><p style="font-size:12px;">${t.correo_solicitante}</p></div>
-    <div class="detail-item"><label>Tipo</label><p>${t.tipo}</p></div>
+    <div class="detail-item"><label>Categoría</label><p>${pillCategoria(t.tipo)}</p></div>
     <div class="detail-item"><label>Equipo afectado</label><p>${t.equipo||'No especificado'}</p></div>
     <div class="detail-item"><label>Prioridad</label><p>${pillPrioridad(t.prioridad)}</p></div>
     <div class="detail-item"><label>Estado actual</label><p>${pillEstado(t.estado)}</p></div>
     <div class="detail-item"><label>Fecha</label><p>${fmt(t.created_at)}</p></div>`;
 
-  // Imágenes
   const imgWrap = document.getElementById('modal-imagenes-wrap');
   const imgGrid = document.getElementById('modal-imagenes');
   if(t.imagenes && t.imagenes.length > 0) {
-    imgGrid.innerHTML = t.imagenes.map(url => `<div class="img-thumb"><img src="${url}" onclick="window.open('${url}','_blank')"/></div>`).join('');
+    imgGrid.innerHTML = t.imagenes.map(url =>
+      `<div class="img-thumb"><img src="${url}" onclick="window.open('${url}','_blank')"/></div>`
+    ).join('');
     imgWrap.style.display = 'block';
   } else {
     imgWrap.style.display = 'none';
@@ -792,16 +949,18 @@ async function guardarTicket() {
 
   const estadoCambio = nuevoEstado !== ticketActual.estado;
 
-  // Actualizar en Supabase
   const { error } = await sb.from('tickets').update({
     estado: nuevoEstado,
     observaciones: obs,
     updated_at: new Date().toISOString()
   }).eq('id', ticketActual.id);
 
-  if(error) { toast('Error al guardar', 'error'); btn.textContent='Guardar y notificar empleado'; btn.disabled=false; return; }
+  if(error) {
+    toast('Error al guardar', 'error');
+    btn.textContent = 'Guardar y notificar empleado';
+    btn.disabled = false; return;
+  }
 
-  // Notificar al empleado si cambió el estado
   if(estadoCambio) {
     try {
       await emailjs.send(EJS_SERVICE, EJS_TPL_ESTADO, {
@@ -834,19 +993,27 @@ async function guardarTicket() {
 
 // ── CORREOS ────────────────────────────────────────────
 async function cargarCorreos() {
-  const { data } = await sb.from('email_log').select('*').order('enviado_at',{ascending:false});
+  const { data } = await sb.from('email_log').select('*').order('enviado_at', { ascending: false });
   const tbody = document.getElementById('tabla-correos');
   tbody.innerHTML = '';
-  if(!data || !data.length) { tbody.innerHTML = '<tr><td colspan="4"><div class="empty">Sin registros de correos</div></td></tr>'; return; }
+  if(!data || !data.length) {
+    tbody.innerHTML = '<tr><td colspan="4"><div class="empty">Sin registros de correos</div></td></tr>';
+    return;
+  }
   const tipoMap = {
-    'ticket_nuevo':'Ticket nuevo (sistemas)', 'ticket_nuevo_cc':'Ticket nuevo (CC)',
-    'constancia_solicitante':'Constancia empleado'
+    'ticket_nuevo':           'Ticket nuevo (sistemas)',
+    'ticket_nuevo_cc':        'Ticket nuevo (CC)',
+    'constancia_solicitante': 'Constancia empleado'
   };
-  const tipoClass = { 'ticket_nuevo':'log-admin','ticket_nuevo_cc':'log-cc','constancia_solicitante':'log-empleado' };
+  const tipoClass = {
+    'ticket_nuevo':'log-admin',
+    'ticket_nuevo_cc':'log-cc',
+    'constancia_solicitante':'log-empleado'
+  };
   data.forEach(c => {
     const tr = document.createElement('tr');
     const label = tipoMap[c.tipo_correo] || c.tipo_correo;
-    const cls   = tipoClass[c.tipo_correo] || (c.tipo_correo.includes('estado')?'log-estado':'log-admin');
+    const cls   = tipoClass[c.tipo_correo] || (c.tipo_correo.includes('estado') ? 'log-estado' : 'log-admin');
     tr.innerHTML = `
       <td style="color:var(--gray-400);font-size:11px;white-space:nowrap;">${fmt(c.enviado_at)}</td>
       <td class="mono">${c.ticket_codigo}</td>
@@ -857,13 +1024,11 @@ async function cargarCorreos() {
 }
 
 // ── INFORME ────────────────────────────────────────────
-// ── INFORME POR ACTIVIDADES ───────────────────────────
 let ticketsInforme = [];
 let seleccionados  = new Set();
 
 async function generarInforme() {
-  // Cargar todos los tickets del día por defecto
-  const hoy = new Date().toISOString().slice(0,10);
+  const hoy = new Date().toISOString().slice(0, 10);
   document.getElementById('inf-fecha-inicio').value = hoy;
   document.getElementById('inf-fecha-fin').value    = hoy;
   await cargarTicketsInforme();
@@ -872,7 +1037,7 @@ async function generarInforme() {
 async function cargarTicketsInforme() {
   const inicio = document.getElementById('inf-fecha-inicio').value;
   const fin    = document.getElementById('inf-fecha-fin').value;
-  let query    = sb.from('tickets').select('*').order('created_at', {ascending: false});
+  let query = sb.from('tickets').select('*').order('created_at', { ascending: false });
   if(inicio) query = query.gte('created_at', inicio + 'T00:00:00');
   if(fin)    query = query.lte('created_at', fin    + 'T23:59:59');
   const { data } = await query;
@@ -891,18 +1056,15 @@ function renderTablaInforme() {
   }
   ticketsInforme.forEach(t => {
     const tr = document.createElement('tr');
-    const imgs = t.imagenes && t.imagenes.length > 0
-      ? `<span style="background:var(--blue-light);color:var(--blue-dark);padding:2px 7px;border-radius:100px;font-size:10px;font-weight:600;">${t.imagenes.length} foto${t.imagenes.length>1?'s':''}</span>`
-      : '<span style="color:var(--gray-400);font-size:11px;">—</span>';
     tr.innerHTML = `
       <td><input type="checkbox" class="chk-ticket" data-id="${t.id}" ${seleccionados.has(t.id)?'checked':''} onchange="toggleTicket(${t.id}, this.checked)"/></td>
       <td class="mono">${t.codigo}</td>
-      <td style="max-width:200px;font-size:12px;">${t.tipo}</td>
+      <td>${pillCategoria(t.tipo)}</td>
       <td style="font-size:12px;">${t.nombre}</td>
       <td style="font-size:11px;color:var(--gray-600);">${t.area}</td>
       <td>${pillEstado(t.estado)}</td>
-      <td style="font-size:11px;color:var(--gray-400);white-space:nowrap;">${fmtShort(t.created_at)}</td>
-      <td>${imgs}</td>`;
+      <td>${pillPrioridad(t.prioridad)}</td>
+      <td style="font-size:11px;color:var(--gray-400);white-space:nowrap;">${fmtShort(t.created_at)}</td>`;
     tbody.appendChild(tr);
   });
   actualizarContador();
@@ -930,13 +1092,16 @@ function deseleccionarTodos() { document.getElementById('chk-all').checked = fal
 
 function actualizarContador() {
   const n = seleccionados.size;
-  document.getElementById('inf-contador').textContent = n > 0 ? `${n} ticket${n>1?'s':''} seleccionado${n>1?'s':''}` : '';
+  document.getElementById('inf-contador').textContent = n > 0
+    ? `${n} ticket${n>1?'s':''} seleccionado${n>1?'s':''}`
+    : '';
 }
 
 function previsualizarInforme() {
   const sel = ticketsInforme.filter(t => seleccionados.has(t.id));
   if(!sel.length) { document.getElementById('informe-preview-wrap').style.display = 'none'; return; }
-  const hoy = new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  const hoy = new Date().toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
+
   let html = `
     <div style="background:white;border:0.5px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;">
       <div style="background:#185FA5;padding:16px 20px;">
@@ -950,11 +1115,11 @@ function previsualizarInforme() {
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
           <div style="background:var(--blue-light);color:var(--blue-dark);font-family:DM Mono,monospace;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;">${t.codigo}</div>
           ${pillEstado(t.estado)} ${pillPrioridad(t.prioridad)}
-          ${t.urgente?'<span style="background:var(--red-light);color:#A32D2D;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;">URGENTE</span>':''}
+          ${t.urgente ? '<span style="background:var(--red-light);color:#A32D2D;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;">URGENTE</span>' : ''}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
           <div>
-            <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Actividad solicitada</div>
+            <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Categoría</div>
             <div style="font-size:13px;font-weight:500;">${t.tipo}</div>
           </div>
           <div>
@@ -984,7 +1149,7 @@ function previsualizarInforme() {
         <div>
           <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Evidencias fotográficas (${t.imagenes.length})</div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-            ${t.imagenes.map((url,j) => `<div style="aspect-ratio:1;border-radius:6px;overflow:hidden;border:0.5px solid var(--gray-200);"><img src="${url}" style="width:100%;height:100%;object-fit:cover;" onclick="window.open('${url}','_blank')"/></div>`).join('')}
+            ${t.imagenes.map(url => `<div style="aspect-ratio:1;border-radius:6px;overflow:hidden;border:0.5px solid var(--gray-200);"><img src="${url}" style="width:100%;height:100%;object-fit:cover;" onclick="window.open('${url}','_blank')"/></div>`).join('')}
           </div>
         </div>` : '<div style="font-size:12px;color:var(--gray-400);">Sin evidencias fotográficas adjuntas.</div>'}
       </div>`;
@@ -1000,67 +1165,53 @@ async function exportarPDFSeleccion() {
   if(!sel.length) { toast('Selecciona al menos un ticket', 'error'); return; }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  const hoy = new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  const hoy = new Date().toLocaleDateString('es-CO', { year:'numeric', month:'long', day:'numeric' });
   let y = 14;
 
-  // Encabezado
   doc.setFillColor(24, 95, 165);
   doc.rect(0, 0, 210, 28, 'F');
-  doc.setTextColor(255,255,255);
-  doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(14); doc.setFont('helvetica', 'bold');
   doc.text('Informe de Actividades — Dpto. de Sistemas', 14, 11);
-  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal');
   doc.text(`Salud Divina de la Costa SAS · NIT 901532386 · ${hoy}`, 14, 20);
   doc.setTextColor(0); y = 38;
 
   for(const t of sel) {
     if(y > 240) { doc.addPage(); y = 14; }
-
-    // Separador por ticket
-    doc.setFillColor(240,242,245);
-    doc.rect(10, y-4, 190, 8, 'F');
-    doc.setFontSize(11); doc.setFont('helvetica','bold');
-    doc.setTextColor(24,95,165);
-    doc.text(`${t.codigo}  ·  ${t.tipo}`, 14, y+1);
+    doc.setFillColor(240, 242, 245);
+    doc.rect(10, y - 4, 190, 8, 'F');
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    doc.setTextColor(24, 95, 165);
+    doc.text(`${t.codigo}  ·  ${t.tipo}`, 14, y + 1);
     doc.setTextColor(0); y += 12;
 
-    doc.setFontSize(9); doc.setFont('helvetica','bold');
-    doc.text('Actividad solicitada:', 14, y);
-    doc.setFont('helvetica','normal');
-    doc.text(t.tipo, 60, y); y += 7;
+    const campos = [
+      ['Categoría:', t.tipo],
+      ['Solicitado por:', `${t.nombre} — ${t.area}`],
+      ['Fecha de reporte:', fmt(t.created_at)],
+      ['Estado:', `${t.estado} · Prioridad: ${t.prioridad||'Baja'}`],
+      ['Equipo afectado:', t.equipo||'No especificado'],
+    ];
+    campos.forEach(([k, v]) => {
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+      doc.text(k, 14, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(v, 60, y); y += 7;
+    });
 
-    doc.setFont('helvetica','bold');
-    doc.text('Solicitado por:', 14, y);
-    doc.setFont('helvetica','normal');
-    doc.text(`${t.nombre} — ${t.area}`, 60, y); y += 7;
-
-    doc.setFont('helvetica','bold');
-    doc.text('Fecha de reporte:', 14, y);
-    doc.setFont('helvetica','normal');
-    doc.text(fmt(t.created_at), 60, y); y += 7;
-
-    doc.setFont('helvetica','bold');
-    doc.text('Estado:', 14, y);
-    doc.setFont('helvetica','normal');
-    doc.text(`${t.estado} · Prioridad: ${t.prioridad}`, 60, y); y += 7;
-
-    doc.setFont('helvetica','bold');
-    doc.text('Equipo afectado:', 14, y);
-    doc.setFont('helvetica','normal');
-    doc.text(t.equipo||'No especificado', 60, y); y += 7;
-
-    doc.setFont('helvetica','bold');
+    doc.setFont('helvetica', 'bold');
     doc.text('Descripción:', 14, y); y += 5;
-    doc.setFont('helvetica','normal');
+    doc.setFont('helvetica', 'normal');
     const descLines = doc.splitTextToSize(t.descripcion, 180);
     doc.text(descLines, 14, y);
     y += descLines.length * 5 + 3;
 
     if(t.observaciones) {
       if(y > 240) { doc.addPage(); y = 14; }
-      doc.setFont('helvetica','bold');
+      doc.setFont('helvetica', 'bold');
       doc.text('Observaciones de sistemas:', 14, y); y += 5;
-      doc.setFont('helvetica','normal');
+      doc.setFont('helvetica', 'normal');
       const obsLines = doc.splitTextToSize(t.observaciones, 180);
       doc.text(obsLines, 14, y);
       y += obsLines.length * 5 + 3;
@@ -1068,17 +1219,17 @@ async function exportarPDFSeleccion() {
 
     if(t.imagenes && t.imagenes.length > 0) {
       if(y > 240) { doc.addPage(); y = 14; }
-      doc.setFont('helvetica','bold');
-      doc.text(`Evidencias fotográficas (${t.imagenes.length}):`, 14, y); y += 5;
-      doc.setFont('helvetica','normal');
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Evidencias (${t.imagenes.length}):`, 14, y); y += 5;
       t.imagenes.forEach((url, i) => {
-        doc.setTextColor(24,95,165);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(24, 95, 165);
         doc.text(`Imagen ${i+1}: ${url}`, 14, y);
         doc.setTextColor(0); y += 5;
       });
     }
     y += 8;
-    doc.setDrawColor(220); doc.line(10, y-4, 200, y-4);
+    doc.setDrawColor(220); doc.line(10, y - 4, 200, y - 4);
   }
 
   doc.save(`informe-actividades-sdc-${new Date().toISOString().slice(0,10)}.pdf`);
@@ -1086,21 +1237,28 @@ async function exportarPDFSeleccion() {
 }
 
 async function exportarMasivo() {
-  const { data: tickets } = await sb.from('tickets').select('*').order('created_at',{ascending:false});
+  const { data: tickets } = await sb.from('tickets').select('*').order('created_at', { ascending: false });
   if(!tickets || !tickets.length) { toast('Sin datos para exportar', 'error'); return; }
   const cols = ['codigo','nombre','area','correo_solicitante','tipo','equipo','descripcion','prioridad','estado','urgente','created_at','updated_at','observaciones'];
-  const csv  = [cols.join(','), ...tickets.map(t => cols.map(c => `"${(t[c]||'').toString().replace(/"/g,'""')}"`).join(','))].join('\n');
-  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const csv  = [
+    cols.join(','),
+    ...tickets.map(t => cols.map(c => `"${(t[c]||'').toString().replace(/"/g,'""')}"`).join(','))
+  ].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href = url; a.download = `tickets-sdc-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click(); URL.revokeObjectURL(url);
+  a.href = url;
+  a.download = `tickets-sdc-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
   toast('CSV descargado', 'ok');
 }
 
-// ── Cerrar modal con Escape ────────────────────────────
-document.addEventListener('keydown', e => { if(e.key==='Escape') cerrarModal(); });
-document.getElementById('modal-backdrop').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarModal(); });
+// ── Eventos globales ──────────────────────────────────
+document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarModal(); });
+document.getElementById('modal-backdrop').addEventListener('click', e => {
+  if(e.target === e.currentTarget) cerrarModal();
+});
 </script>
 </body>
 </html>
