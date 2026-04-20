@@ -6,7 +6,29 @@
 <title>Soporte Sistemas — Salud Divina de la Costa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ── PARAMETRIZACIÓN ───────────────────────────────────
+let paramSeleccionado = '';
+
+function toggleParametrizacion() {
+  const tipo = document.getElementById('tipo').value;
+  const wrap = document.getElementById('param-wrap');
+  if (tipo === 'Parametrización') {
+    wrap.style.display = '';
+  } else {
+    wrap.style.display = 'none';
+    paramSeleccionado = '';
+    document.querySelectorAll('.param-option').forEach(el => el.classList.remove('selected'));
+  }
+}
+
+function selectParam(el, valor) {
+  document.querySelectorAll('.param-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  paramSeleccionado = valor;
+}
+
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   /* ── CONFIG ─────────────────────────────────────────── */
@@ -416,6 +438,20 @@
     .form-grid .full { grid-column: 1; }
     .hero h2 { font-size: 18px; }
   }
+
+  /* ── PARAMETRIZACIÓN SUBMODULO ───────────────────────── */
+  .param-option {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; padding: 14px 10px;
+    border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm);
+    background: var(--gray-50); cursor: pointer;
+    transition: all 0.15s; text-align: center;
+  }
+  .param-option:hover { border-color: var(--blue-mid); background: var(--blue-light); }
+  .param-option.selected { border-color: var(--blue); background: var(--blue-light); box-shadow: 0 0 0 3px rgba(55,138,221,0.12); }
+  .param-icon { font-size: 22px; line-height: 1; }
+  .param-label { font-size: 13px; font-weight: 600; color: var(--gray-900); }
+  .param-option.selected .param-label { color: var(--blue-dark); }
 </style>
 </head>
 <body>
@@ -465,42 +501,26 @@
             <label for="area">Área / dependencia <span class="req">*</span></label>
             <select id="area">
               <option value="">Seleccionar área...</option>
-              <option>Presidencia</option>
-              <option>Dirección médica</option>
-              <option>Gerencia general</option>
-              <option>Asistente de gerencia</option>
-              <option>Coord. Contabilidad</option>
-              <option>Auxiliar contable</option>
-              <option>Coord. Gestión humana</option>
-              <option>Auxiliar de talento humano</option>
-              <option>Jurídica</option>
-              <option>Coord. Sistemas</option>
-              <option>Auxiliar de sistemas</option>
-              <option>Coord. Calidad</option>
-              <option>Auxiliar de calidad</option>
-              <option>Coord. Accesibilidad</option>
-              <option>Auxiliar de facturación</option>
-              <option>Gestor de autorizaciones</option>
-              <option>Auxiliar de admisiones</option>
-              <option>Central de referencia</option>
-              <option>Radicación</option>
-              <option>Auditoría concurrente</option>
-              <option>Auditoría de cuentas</option>
-              <option>Facturación electrónica</option>
-              <option>Coordinación médica</option>
-              <option>Coord. Biomédica</option>
-              <option>Coord. Mantenimiento</option>
-              <option>Coord. Enfermería</option>
-              <option>Laboratorio clínico</option>
-              <option>Farmacia</option>
-              <option>Cotizaciones hospitalarias</option>
-              <option>Comercial contratación</option>
-              <option>Logística y compras</option>
-              <option>Consulta externa</option>
-              <option>Radiología</option>
+              <option>Facturación</option>
+              <option>Admisiones</option>
+              <option>Admisiones 2do Piso</option>
+              <option>Calidad</option>
+              <option>Gerencia</option>
+              <option>Reanimación URG</option>
+              <option>Sala ERA URG</option>
+              <option>Sala de Hombres URG</option>
+              <option>Sala de Mujeres URG</option>
+              <option>Sala de Pediatría URG</option>
+              <option>Sala Procedimientos Menores URG</option>
               <option>Urgencias</option>
-              <option>Hospitalización</option>
-              <option>UCI</option>
+              <option>Central de Esterilización</option>
+              <option>Hospitalización 4 Piso</option>
+              <option>Pensión</option>
+              <option>Cirugía</option>
+              <option>Urgencia por SOAT</option>
+              <option>Unidad de Cuidados Intensivos</option>
+              <option>UCI Polivalente</option>
+              <option>Unidad de Cuidados Polivalente</option>
               <option value="otra">Otra área...</option>
             </select>
           </div>
@@ -520,7 +540,7 @@
         <div class="form-grid">
           <div class="form-group">
             <label for="tipo">Tipo de solicitud <span class="req">*</span></label>
-            <select id="tipo">
+            <select id="tipo" onchange="toggleParametrizacion()">
               <option value="">Seleccionar tipo...</option>
               <option>Soporte técnico</option>
               <option>Fallo de equipo</option>
@@ -531,8 +551,35 @@
               <option>Instalación de programa</option>
               <option>Solicitud de usuario nuevo</option>
               <option>Capacitación</option>
+              <option value="Parametrización">Parametrización</option>
               <option>Otro</option>
             </select>
+          </div>
+          <!-- SUBMODULO PARAMETRIZACIÓN -->
+          <div class="form-group full" id="param-wrap" style="display:none;">
+            <label>Tipo de parametrización <span class="req">*</span></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+              <label class="param-option" onclick="selectParam(this,'Tarifa')">
+                <input type="radio" name="param-tipo" value="Tarifa" style="display:none;"/>
+                <div class="param-icon">💲</div>
+                <div class="param-label">Tarifa</div>
+              </label>
+              <label class="param-option" onclick="selectParam(this,'Servicio')">
+                <input type="radio" name="param-tipo" value="Servicio" style="display:none;"/>
+                <div class="param-icon">🏥</div>
+                <div class="param-label">Servicio</div>
+              </label>
+              <label class="param-option" onclick="selectParam(this,'Insumo')">
+                <input type="radio" name="param-tipo" value="Insumo" style="display:none;"/>
+                <div class="param-icon">📦</div>
+                <div class="param-label">Insumo</div>
+              </label>
+              <label class="param-option" onclick="selectParam(this,'Medicamento')">
+                <input type="radio" name="param-tipo" value="Medicamento" style="display:none;"/>
+                <div class="param-icon">💊</div>
+                <div class="param-label">Medicamento</div>
+              </label>
+            </div>
           </div>
           <div class="form-group">
             <label for="equipo">Equipo o sistema afectado</label>
@@ -776,6 +823,7 @@ async function enviarTicket() {
   if (!area)        { showToast('Selecciona o escribe tu área', true); return; }
   if (!correo || !correo.includes('@')) { showToast('Ingresa un correo válido', true); return; }
   if (!tipo)        { showToast('Selecciona el tipo de solicitud', true); return; }
+  if (tipo === 'Parametrización' && !paramSeleccionado) { showToast('Selecciona el tipo de parametrización', true); return; }
   if (!descripcion) { showToast('Describe el problema', true); return; }
 
   const btn = document.getElementById('btn-enviar');
@@ -801,7 +849,8 @@ async function enviarTicket() {
     btn.innerHTML = '<span class="spinner"></span>Guardando...';
     const { error: dbError } = await sbClient.from('tickets').insert([{
       codigo, nombre, area, correo_solicitante: correo,
-      tipo, equipo: equipo || 'No especificado',
+      tipo: tipo === 'Parametrización' ? `Parametrización — ${paramSeleccionado}` : tipo,
+      equipo: equipo || 'No especificado',
       descripcion, prioridad, estado: 'Pendiente',
       urgente, imagenes: imagenesUrls, created_at: fechaISO
     }]);
@@ -811,7 +860,8 @@ async function enviarTicket() {
     btn.innerHTML = '<span class="spinner"></span>Enviando correos...';
     await emailjs.send(EJS_SERVICE, EJS_TPL_ADMIN, {
       codigo, nombre, area, correo_solicitante: correo,
-      tipo, equipo: equipo || 'No especificado',
+      tipo: tipo === 'Parametrización' ? `Parametrización — ${paramSeleccionado}` : tipo,
+      equipo: equipo || 'No especificado',
       descripcion, prioridad,
       urgente: urgente ? 'SÍ — URGENTE' : 'No',
       fecha: fechaLeg,
