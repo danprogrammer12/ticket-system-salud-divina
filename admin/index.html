@@ -764,8 +764,23 @@ function pillCategoria(t) {
   return `<span class="pill ${cls}">${t||'—'}</span>`;
 }
 
-function filaTicket(t, tbody) {
+function separadorGrupo(label, count, color, badgeBg, badgeText, tbody) {
   const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td colspan="8" style="padding:7px 12px; background:${color};">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:${badgeBg};flex-shrink:0;"></div>
+        <span style="font-size:10px;font-weight:600;color:${badgeText};text-transform:uppercase;letter-spacing:0.06em;">${label}</span>
+        <span style="background:${badgeBg};color:${color};font-size:10px;font-weight:600;padding:1px 7px;border-radius:100px;">${count}</span>
+      </div>
+    </td>`;
+  tbody.appendChild(tr);
+}
+
+function filaTicket(t, tbody) {
+  const resuelto = t.estado === 'Resuelto';
+  const tr = document.createElement('tr');
+  tr.style.opacity = resuelto ? '0.65' : '1';
   tr.innerHTML = `
     <td class="mono">${t.codigo}</td>
     <td>${t.nombre}</td>
@@ -776,6 +791,25 @@ function filaTicket(t, tbody) {
     <td style="color:var(--gray-400);font-size:11px;white-space:nowrap;">${fmtShort(t.created_at)}</td>
     <td><button class="btn-ver" onclick="abrirModal('${t.id}')">Ver</button></td>`;
   tbody.appendChild(tr);
+}
+
+function renderTicketsConDivision(data, tbody) {
+  tbody.innerHTML = '';
+  if(!data || !data.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty">Sin tickets para los filtros seleccionados</div></td></tr>';
+    return;
+  }
+  const activos   = data.filter(t => t.estado !== 'Resuelto');
+  const resueltos = data.filter(t => t.estado === 'Resuelto');
+
+  if(activos.length > 0) {
+    separadorGrupo('Activos — pendientes y en progreso', activos.length, 'var(--blue-light)', 'var(--blue)', 'var(--blue-dark)', tbody);
+    activos.forEach(t => filaTicket(t, tbody));
+  }
+  if(resueltos.length > 0) {
+    separadorGrupo('Cerrados — resueltos', resueltos.length, 'var(--gray-100)', 'var(--gray-400)', 'var(--gray-600)', tbody);
+    resueltos.forEach(t => filaTicket(t, tbody));
+  }
 }
 
 // ── DASHBOARD ──────────────────────────────────────────
@@ -868,8 +902,7 @@ async function cargarDashboard() {
 
   // Recientes
   const tbody = document.getElementById('tabla-recientes');
-  tbody.innerHTML = '';
-  tickets.slice(0, 8).forEach(t => filaTicket(t, tbody));
+  renderTicketsConDivision(tickets.slice(0, 10), tbody);
 }
 
 // ── TICKETS ────────────────────────────────────────────
@@ -887,12 +920,7 @@ async function cargarTickets() {
 
   const { data } = await query;
   const tbody = document.getElementById('tabla-tickets');
-  tbody.innerHTML = '';
-  if(!data || !data.length) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty">Sin tickets para los filtros seleccionados</div></td></tr>';
-    return;
-  }
-  data.forEach(t => filaTicket(t, tbody));
+  renderTicketsConDivision(data, tbody);
 }
 
 function limpiarFiltros() {
