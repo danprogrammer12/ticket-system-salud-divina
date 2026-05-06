@@ -610,7 +610,7 @@ function selectParam(el, valor) {
             <div class="upload-progress" id="upload-progress"></div>
           </div>
 
-          <div class="form-group full">
+          <div class="form-group full" id="urgente-wrap" style="display:none;">
             <label class="urgente-wrap" for="urgente">
               <input type="checkbox" id="urgente"/>
               <div>
@@ -775,10 +775,29 @@ function formatearImagenesCorreo(urls) {
 }
 
 // ── Área "otra" ──────────────────────────────────────────
+// Áreas que pueden marcar urgente
+const AREAS_URGENTE = [
+  'Hospitalización',
+  'Cirugía',
+  'UCI',
+  'Unidad de cuidados intensivos',
+  'Unidad de cuidados intermedios'
+];
+
 document.getElementById('area').addEventListener('change', function() {
+  // Otra área
   const wrap = document.getElementById('otra-area-wrap');
   wrap.style.display = this.value === 'otra' ? 'block' : 'none';
   if (this.value !== 'otra') document.getElementById('otra-area').value = '';
+
+  // Mostrar/ocultar urgente según área
+  const urgenteWrap = document.getElementById('urgente-wrap');
+  const areaVal = this.value;
+  const mostrarUrgente = AREAS_URGENTE.some(a => 
+    areaVal.toLowerCase().includes(a.toLowerCase())
+  );
+  urgenteWrap.style.display = mostrarUrgente ? 'block' : 'none';
+  if (!mostrarUrgente) document.getElementById('urgente').checked = false;
 });
 
 // ── Tabs ─────────────────────────────────────────────────
