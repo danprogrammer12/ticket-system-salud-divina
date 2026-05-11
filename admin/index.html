@@ -6,78 +6,7 @@
 <title>Admin — Sistema de Tickets · Salud Divina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-// ── RESET PASSWORD ────────────────────────────────────
-function mostrarReset() {
-  const wrap = document.getElementById('reset-wrap');
-  const visible = wrap.style.display === 'block';
-  wrap.style.display = visible ? 'none' : 'block';
-  document.getElementById('reset-success').style.display = 'none';
-  document.getElementById('login-error').textContent = '';
-  if (!visible) {
-    const loginEmail = document.getElementById('login-email').value;
-    if (loginEmail) document.getElementById('reset-email').value = loginEmail;
-  }
-}
-
-async function enviarReset() {
-  const email = document.getElementById('reset-email').value.trim();
-  const btn   = document.getElementById('btn-reset');
-  const err   = document.getElementById('login-error');
-
-  if (!email || !email.includes('@')) {
-    err.textContent = 'Ingresa un correo válido para recuperar la contraseña.';
-    return;
-  }
-
-  btn.innerHTML = '<span class="spinner"></span>Enviando...';
-  btn.disabled  = true;
-
-  const { error } = await sb.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.href
-  });
-
-  btn.textContent = 'Enviar enlace de recuperación';
-  btn.disabled    = false;
-
-  if (error) {
-    err.textContent = 'Error al enviar el correo. Verifica que el correo esté registrado.';
-  } else {
-    document.getElementById('reset-wrap').style.display   = 'none';
-    document.getElementById('reset-success').style.display = 'block';
-    err.textContent = '';
-  }
-}
-
-// Detectar si viene de un enlace de reset y mostrar formulario de nueva contraseña
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (event === 'PASSWORD_RECOVERY') {
-    const nueva = prompt('Ingresa tu nueva contraseña (mínimo 6 caracteres):');
-    if (nueva && nueva.length >= 6) {
-      const { error } = await sb.auth.updateUser({ password: nueva });
-      if (error) {
-        alert('Error al actualizar la contraseña. Intenta de nuevo.');
-      } else {
-        alert('✅ Contraseña actualizada correctamente. Inicia sesión con tu nueva contraseña.');
-        await sb.auth.signOut();
-        location.reload();
-      }
-    }
-  }
-  if (event === 'SIGNED_IN' && session) {
-    const u = session.user.email;
-    document.getElementById('sid-email').textContent     = u;
-    document.getElementById('topbar-email').textContent  = u.split('@')[0];
-    document.getElementById('topbar-avatar').textContent = u.substring(0,2).toUpperCase();
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display   = 'flex';
-  } else if (event === 'SIGNED_OUT') {
-    document.getElementById('login-screen').style.display = '';
-    document.getElementById('app-screen').style.display   = 'none';
-  }
-});
-
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1384,6 +1313,72 @@ document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarModal()
 document.getElementById('modal-backdrop').addEventListener('click', e => {
   if(e.target === e.currentTarget) cerrarModal();
 });
+
+// ── RESET PASSWORD ────────────────────────────────────
+function mostrarReset() {
+  const wrap = document.getElementById('reset-wrap');
+  const visible = wrap.style.display === 'block';
+  wrap.style.display = visible ? 'none' : 'block';
+  document.getElementById('reset-success').style.display = 'none';
+  document.getElementById('login-error').textContent = '';
+  if (!visible) {
+    const loginEmail = document.getElementById('login-email').value;
+    if (loginEmail) document.getElementById('reset-email').value = loginEmail;
+  }
+}
+
+async function enviarReset() {
+  const email = document.getElementById('reset-email').value.trim();
+  const btn   = document.getElementById('btn-reset');
+  const err   = document.getElementById('login-error');
+  if (!email || !email.includes('@')) {
+    err.textContent = 'Ingresa un correo válido para recuperar la contraseña.';
+    return;
+  }
+  btn.innerHTML = '<span class="spinner"></span>Enviando...';
+  btn.disabled  = true;
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.href
+  });
+  btn.textContent = 'Enviar enlace de recuperación';
+  btn.disabled    = false;
+  if (error) {
+    err.textContent = 'Error al enviar el correo. Verifica que el correo esté registrado.';
+  } else {
+    document.getElementById('reset-wrap').style.display   = 'none';
+    document.getElementById('reset-success').style.display = 'block';
+    err.textContent = '';
+  }
+}
+
+// Detectar reset de contraseña desde enlace del correo
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    const nueva = prompt('Ingresa tu nueva contraseña (minimo 6 caracteres):');
+    if (nueva && nueva.length >= 6) {
+      const { error } = await sb.auth.updateUser({ password: nueva });
+      if (error) {
+        alert('Error al actualizar la contrasena. Intenta de nuevo.');
+      } else {
+        alert('Contrasena actualizada correctamente. Inicia sesion con tu nueva contrasena.');
+        await sb.auth.signOut();
+        location.reload();
+      }
+    }
+  }
+  if (event === 'SIGNED_IN' && session) {
+    const u = session.user.email;
+    document.getElementById('sid-email').textContent     = u;
+    document.getElementById('topbar-email').textContent  = u.split('@')[0];
+    document.getElementById('topbar-avatar').textContent = u.substring(0,2).toUpperCase();
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display   = 'flex';
+  } else if (event === 'SIGNED_OUT') {
+    document.getElementById('login-screen').style.display = '';
+    document.getElementById('app-screen').style.display   = 'none';
+  }
+});
+
 </script>
 </body>
 </html>
