@@ -6,7 +6,78 @@
 <title>Admin — Sistema de Tickets · Salud Divina</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ── RESET PASSWORD ────────────────────────────────────
+function mostrarReset() {
+  const wrap = document.getElementById('reset-wrap');
+  const visible = wrap.style.display === 'block';
+  wrap.style.display = visible ? 'none' : 'block';
+  document.getElementById('reset-success').style.display = 'none';
+  document.getElementById('login-error').textContent = '';
+  if (!visible) {
+    const loginEmail = document.getElementById('login-email').value;
+    if (loginEmail) document.getElementById('reset-email').value = loginEmail;
+  }
+}
+
+async function enviarReset() {
+  const email = document.getElementById('reset-email').value.trim();
+  const btn   = document.getElementById('btn-reset');
+  const err   = document.getElementById('login-error');
+
+  if (!email || !email.includes('@')) {
+    err.textContent = 'Ingresa un correo válido para recuperar la contraseña.';
+    return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span>Enviando...';
+  btn.disabled  = true;
+
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.href
+  });
+
+  btn.textContent = 'Enviar enlace de recuperación';
+  btn.disabled    = false;
+
+  if (error) {
+    err.textContent = 'Error al enviar el correo. Verifica que el correo esté registrado.';
+  } else {
+    document.getElementById('reset-wrap').style.display   = 'none';
+    document.getElementById('reset-success').style.display = 'block';
+    err.textContent = '';
+  }
+}
+
+// Detectar si viene de un enlace de reset y mostrar formulario de nueva contraseña
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    const nueva = prompt('Ingresa tu nueva contraseña (mínimo 6 caracteres):');
+    if (nueva && nueva.length >= 6) {
+      const { error } = await sb.auth.updateUser({ password: nueva });
+      if (error) {
+        alert('Error al actualizar la contraseña. Intenta de nuevo.');
+      } else {
+        alert('✅ Contraseña actualizada correctamente. Inicia sesión con tu nueva contraseña.');
+        await sb.auth.signOut();
+        location.reload();
+      }
+    }
+  }
+  if (event === 'SIGNED_IN' && session) {
+    const u = session.user.email;
+    document.getElementById('sid-email').textContent     = u;
+    document.getElementById('topbar-email').textContent  = u.split('@')[0];
+    document.getElementById('topbar-avatar').textContent = u.substring(0,2).toUpperCase();
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display   = 'flex';
+  } else if (event === 'SIGNED_OUT') {
+    document.getElementById('login-screen').style.display = '';
+    document.getElementById('app-screen').style.display   = 'none';
+  }
+});
+
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -326,6 +397,21 @@ tr:hover td { background: var(--gray-50); }
   .charts-row { grid-template-columns: 1fr; }
   .sidebar    { width: 180px; }
 }
+
+  /* ── RESET PASSWORD ─────────────────────────────────── */
+  .reset-link {
+    display: block; text-align: center; margin-top: 12px;
+    font-size: 12px; color: var(--blue-mid); cursor: pointer;
+    text-decoration: underline; background: none; border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .reset-link:hover { color: var(--blue-dark); }
+  .reset-success {
+    background: var(--green-light); border: 0.5px solid #9FE1CB;
+    border-radius: var(--radius-sm); padding: 10px 14px;
+    font-size: 12px; color: #085041; text-align: center;
+    margin-top: 10px; display: none;
+  }
 </style>
 </head>
 <body>
@@ -348,6 +434,17 @@ tr:hover td { background: var(--gray-50); }
     </div>
     <button class="btn-login" id="btn-login" onclick="doLogin()">Ingresar</button>
     <div class="login-error" id="login-error"></div>
+    <button class="reset-link" onclick="mostrarReset()">¿Olvidaste tu contraseña?</button>
+    <div id="reset-wrap" style="display:none; margin-top:10px;">
+      <div class="login-group" style="margin-bottom:8px;">
+        <label>Correo electrónico</label>
+        <input type="email" id="reset-email" placeholder="tucorreo@saluddivina.com"/>
+      </div>
+      <button class="btn-login" id="btn-reset" onclick="enviarReset()" style="background:var(--green);">Enviar enlace de recuperación</button>
+    </div>
+    <div class="reset-success" id="reset-success">
+      ✅ Correo enviado. Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.
+    </div>
   </div>
 </div>
 
