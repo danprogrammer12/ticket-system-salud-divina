@@ -757,7 +757,7 @@ async function subirImagenes(codigo) {
     prog.textContent = `Subiendo imagen ${i + 1} de ${imagenesSeleccionadas.length}...`;
     const { error } = await sbClient.storage
       .from('ticket-imagenes')
-      .upload(path, file, { contentType: file.type, upsert: true });
+      .upload(path, file, { contentType: file.type, upsert: false });
     if (error) { console.error('Error subiendo imagen:', error); continue; }
     const { data } = sbClient.storage.from('ticket-imagenes').getPublicUrl(path);
     urls.push(data.publicUrl);
@@ -822,9 +822,10 @@ function generarCodigo() {
 async function generarCodigoDisponible() {
   for (let intento = 0; intento < 10; intento++) {
     const codigo = generarCodigo();
-    const { data, error } = await sbClient.from('tickets').select('id').eq('codigo', codigo).limit(1);
+    // Función de Supabase (supabase/rls.sql): el portal no puede leer la tabla tickets directamente
+    const { data: existe, error } = await sbClient.rpc('codigo_ticket_existe', { p_codigo: codigo });
     if (error) throw error;
-    if (!data.length) return codigo;
+    if (!existe) return codigo;
   }
   throw new Error('No se pudo generar un código de ticket único');
 }
@@ -994,8 +995,8 @@ async function buscarTicket() {
   document.getElementById('ticket-result').style.display = 'none';
   document.getElementById('no-result').style.display     = 'none';
 
-  const { data, error } = await sbClient
-    .from('tickets').select('*').eq('codigo', codigo).single();
+  // Función de Supabase (supabase/rls.sql): el portal no puede leer la tabla tickets directamente
+  const { data, error } = await sbClient.rpc('consultar_ticket', { p_codigo: codigo });
 
   if (error || !data) { document.getElementById('no-result').style.display = 'block'; return; }
 
