@@ -264,6 +264,7 @@ tr:hover td { background: var(--gray-50); }
   aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden;
   border: 0.5px solid var(--gray-200); cursor: pointer;
 }
+.img-thumb a   { display: block; width: 100%; height: 100%; }
 .img-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
 .obs-textarea {
@@ -724,6 +725,28 @@ function fmtShort(iso) {
   });
 }
 
+// ── Escapado de datos ──────────────────────────────────
+// Todo dato que viene de la base (lo escribe el empleado en el portal) debe pasar
+// por esc() antes de insertarse con innerHTML, para que no se ejecute como HTML/JS.
+function esc(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Solo permite URLs http(s) (evita "javascript:" en src/href)
+function urlSegura(url) {
+  return /^https?:\/\//i.test(url || '') ? esc(url) : '';
+}
+
+// Valor para pasar como argumento JS dentro de un atributo onclick/onchange
+function argJS(v) {
+  return esc(JSON.stringify(v));
+}
+
 // ── Toast ──────────────────────────────────────────────
 function toast(msg, type='') {
   const t = document.getElementById('toast');
@@ -797,7 +820,7 @@ function showView(v) {
 // ── PILLS ──────────────────────────────────────────────
 function pillEstado(e) {
   const cls = { Pendiente:'p-pendiente', 'En progreso':'p-progreso', Resuelto:'p-resuelto' };
-  return `<span class="pill ${cls[e]||'p-pendiente'}">${e}</span>`;
+  return `<span class="pill ${cls[e]||'p-pendiente'}">${esc(e)}</span>`;
 }
 
 function pillPrioridad(p) {
@@ -812,7 +835,7 @@ function pillCategoria(t) {
     'Gestión de usuarios':             't-usuarios',
     'Instalaciones y configuraciones': 't-instalaciones'
   };
-  return `<span class="pill ${map[categoriaDe(t)]}">${t||'—'}</span>`;
+  return `<span class="pill ${map[categoriaDe(t)]}">${esc(t||'—')}</span>`;
 }
 
 function separadorGrupo(label, count, color, badgeBg, badgeText, tbody) {
@@ -821,7 +844,7 @@ function separadorGrupo(label, count, color, badgeBg, badgeText, tbody) {
     <td colspan="8" style="padding:7px 12px; background:${color};">
       <div style="display:flex;align-items:center;gap:8px;">
         <div style="width:8px;height:8px;border-radius:50%;background:${badgeBg};flex-shrink:0;"></div>
-        <span style="font-size:10px;font-weight:600;color:${badgeText};text-transform:uppercase;letter-spacing:0.06em;">${label}</span>
+        <span style="font-size:10px;font-weight:600;color:${badgeText};text-transform:uppercase;letter-spacing:0.06em;">${esc(label)}</span>
         <span style="background:${badgeBg};color:${color};font-size:10px;font-weight:600;padding:1px 7px;border-radius:100px;">${count}</span>
       </div>
     </td>`;
@@ -833,14 +856,14 @@ function filaTicket(t, tbody) {
   const tr = document.createElement('tr');
   tr.style.opacity = resuelto ? '0.65' : '1';
   tr.innerHTML = `
-    <td class="mono">${t.codigo}</td>
-    <td>${t.nombre}</td>
-    <td style="color:var(--gray-600);font-size:11px;">${t.area}</td>
+    <td class="mono">${esc(t.codigo)}</td>
+    <td>${esc(t.nombre)}</td>
+    <td style="color:var(--gray-600);font-size:11px;">${esc(t.area)}</td>
     <td>${pillCategoria(t.tipo)}</td>
     <td>${pillEstado(t.estado)}</td>
     <td>${pillPrioridad(t.prioridad)}</td>
     <td style="color:var(--gray-400);font-size:11px;white-space:nowrap;">${fmtShort(t.created_at)}</td>
-    <td><button class="btn-ver" onclick="abrirModal('${t.id}')">Ver</button></td>`;
+    <td><button class="btn-ver" onclick="abrirModal(${argJS(t.id)})">Ver</button></td>`;
   tbody.appendChild(tr);
 }
 
@@ -988,11 +1011,11 @@ async function abrirModal(id) {
   document.getElementById('modal-desc').textContent       = t.descripcion;
 
   document.getElementById('modal-detalle').innerHTML = `
-    <div class="detail-item"><label>Solicitante</label><p>${t.nombre}</p></div>
-    <div class="detail-item"><label>Área</label><p>${t.area}</p></div>
-    <div class="detail-item"><label>Correo</label><p style="font-size:12px;">${t.correo_solicitante}</p></div>
+    <div class="detail-item"><label>Solicitante</label><p>${esc(t.nombre)}</p></div>
+    <div class="detail-item"><label>Área</label><p>${esc(t.area)}</p></div>
+    <div class="detail-item"><label>Correo</label><p style="font-size:12px;">${esc(t.correo_solicitante)}</p></div>
     <div class="detail-item"><label>Categoría</label><p>${pillCategoria(t.tipo)}</p></div>
-    <div class="detail-item"><label>Equipo afectado</label><p>${t.equipo||'No especificado'}</p></div>
+    <div class="detail-item"><label>Equipo afectado</label><p>${esc(t.equipo||'No especificado')}</p></div>
     <div class="detail-item"><label>Prioridad</label><p>${pillPrioridad(t.prioridad)}</p></div>
     <div class="detail-item"><label>Estado actual</label><p>${pillEstado(t.estado)}</p></div>
     <div class="detail-item"><label>Fecha</label><p>${fmt(t.created_at)}</p></div>`;
@@ -1001,7 +1024,7 @@ async function abrirModal(id) {
   const imgGrid = document.getElementById('modal-imagenes');
   if(t.imagenes && t.imagenes.length > 0) {
     imgGrid.innerHTML = t.imagenes.map(url =>
-      `<div class="img-thumb"><img src="${url}" onclick="window.open('${url}','_blank')"/></div>`
+      `<div class="img-thumb"><a href="${urlSegura(url)}" target="_blank" rel="noopener"><img src="${urlSegura(url)}"/></a></div>`
     ).join('');
     imgWrap.style.display = 'block';
   } else {
@@ -1093,9 +1116,9 @@ async function cargarCorreos() {
     const cls   = tipoClass[c.tipo_correo] || (c.tipo_correo.includes('estado') ? 'log-estado' : 'log-admin');
     tr.innerHTML = `
       <td style="color:var(--gray-400);font-size:11px;white-space:nowrap;">${fmt(c.enviado_at)}</td>
-      <td class="mono">${c.ticket_codigo}</td>
-      <td style="font-size:12px;">${c.destinatario}</td>
-      <td><span class="log-chip ${cls}">${label}</span></td>`;
+      <td class="mono">${esc(c.ticket_codigo)}</td>
+      <td style="font-size:12px;">${esc(c.destinatario)}</td>
+      <td><span class="log-chip ${cls}">${esc(label)}</span></td>`;
     tbody.appendChild(tr);
   });
 }
@@ -1134,11 +1157,11 @@ function renderTablaInforme() {
   ticketsInforme.forEach(t => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><input type="checkbox" class="chk-ticket" data-id="${t.id}" ${seleccionados.has(t.id)?'checked':''} onchange="toggleTicket(${t.id}, this.checked)"/></td>
-      <td class="mono">${t.codigo}</td>
+      <td><input type="checkbox" class="chk-ticket" data-id="${esc(t.id)}" ${seleccionados.has(t.id)?'checked':''} onchange="toggleTicket(${argJS(t.id)}, this.checked)"/></td>
+      <td class="mono">${esc(t.codigo)}</td>
       <td>${pillCategoria(t.tipo)}</td>
-      <td style="font-size:12px;">${t.nombre}</td>
-      <td style="font-size:11px;color:var(--gray-600);">${t.area}</td>
+      <td style="font-size:12px;">${esc(t.nombre)}</td>
+      <td style="font-size:11px;color:var(--gray-600);">${esc(t.area)}</td>
       <td>${pillEstado(t.estado)}</td>
       <td>${pillPrioridad(t.prioridad)}</td>
       <td style="font-size:11px;color:var(--gray-400);white-space:nowrap;">${fmtShort(t.created_at)}</td>`;
@@ -1190,19 +1213,19 @@ function previsualizarInforme() {
     html += `
       <div style="padding:20px;${i>0?'border-top:1px solid var(--gray-100)':''}">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-          <div style="background:var(--blue-light);color:var(--blue-dark);font-family:DM Mono,monospace;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;">${t.codigo}</div>
+          <div style="background:var(--blue-light);color:var(--blue-dark);font-family:DM Mono,monospace;font-size:12px;font-weight:600;padding:4px 10px;border-radius:6px;">${esc(t.codigo)}</div>
           ${pillEstado(t.estado)} ${pillPrioridad(t.prioridad)}
           ${t.urgente ? '<span style="background:var(--red-light);color:#A32D2D;font-size:10px;font-weight:600;padding:2px 8px;border-radius:100px;">URGENTE</span>' : ''}
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
           <div>
             <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Categoría</div>
-            <div style="font-size:13px;font-weight:500;">${t.tipo}</div>
+            <div style="font-size:13px;font-weight:500;">${esc(t.tipo)}</div>
           </div>
           <div>
             <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Solicitado por</div>
-            <div style="font-size:13px;font-weight:500;">${t.nombre}</div>
-            <div style="font-size:11px;color:var(--gray-400);">${t.area}</div>
+            <div style="font-size:13px;font-weight:500;">${esc(t.nombre)}</div>
+            <div style="font-size:11px;color:var(--gray-400);">${esc(t.area)}</div>
           </div>
           <div>
             <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Fecha de reporte</div>
@@ -1210,23 +1233,23 @@ function previsualizarInforme() {
           </div>
           <div>
             <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;">Equipo afectado</div>
-            <div style="font-size:13px;">${t.equipo||'No especificado'}</div>
+            <div style="font-size:13px;">${esc(t.equipo||'No especificado')}</div>
           </div>
         </div>
         <div style="margin-bottom:12px;">
           <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;">Descripción del problema</div>
-          <div style="background:var(--gray-50);border:0.5px solid var(--gray-200);border-radius:6px;padding:10px;font-size:13px;line-height:1.6;">${t.descripcion}</div>
+          <div style="background:var(--gray-50);border:0.5px solid var(--gray-200);border-radius:6px;padding:10px;font-size:13px;line-height:1.6;">${esc(t.descripcion)}</div>
         </div>
         ${t.observaciones ? `
         <div style="margin-bottom:12px;">
           <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;">Observaciones del equipo de sistemas</div>
-          <div style="background:var(--green-light);border:0.5px solid #9FE1CB;border-radius:6px;padding:10px;font-size:13px;line-height:1.6;">${t.observaciones}</div>
+          <div style="background:var(--green-light);border:0.5px solid #9FE1CB;border-radius:6px;padding:10px;font-size:13px;line-height:1.6;">${esc(t.observaciones)}</div>
         </div>` : ''}
         ${t.imagenes && t.imagenes.length > 0 ? `
         <div>
           <div style="font-size:10px;color:var(--gray-400);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">Evidencias fotográficas (${t.imagenes.length})</div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-            ${t.imagenes.map(url => `<div style="aspect-ratio:1;border-radius:6px;overflow:hidden;border:0.5px solid var(--gray-200);"><img src="${url}" style="width:100%;height:100%;object-fit:cover;" onclick="window.open('${url}','_blank')"/></div>`).join('')}
+            ${t.imagenes.map(url => `<div style="aspect-ratio:1;border-radius:6px;overflow:hidden;border:0.5px solid var(--gray-200);"><a href="${urlSegura(url)}" target="_blank" rel="noopener" style="display:block;width:100%;height:100%;"><img src="${urlSegura(url)}" style="width:100%;height:100%;object-fit:cover;"/></a></div>`).join('')}
           </div>
         </div>` : '<div style="font-size:12px;color:var(--gray-400);">Sin evidencias fotográficas adjuntas.</div>'}
       </div>`;
