@@ -1336,15 +1336,24 @@ async function exportarPDFSeleccion() {
   toast('PDF descargado', 'ok');
 }
 
+// Celda CSV entre comillas. Si empieza por = + - @ tab o salto de línea, Excel la
+// ejecutaría como fórmula; se antepone ' para que la trate como texto.
+function celdaCSV(v) {
+  let s = (v || '').toString();
+  if(/^[=+\-@\t\r\n]/.test(s)) s = "'" + s;
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
 async function exportarMasivo() {
   const { data: tickets } = await sb.from('tickets').select('*').order('created_at', { ascending: false });
   if(!tickets || !tickets.length) { toast('Sin datos para exportar', 'error'); return; }
   const cols = ['codigo','nombre','area','correo_solicitante','tipo','equipo','descripcion','prioridad','estado','urgente','created_at','updated_at','observaciones'];
   const csv  = [
     cols.join(','),
-    ...tickets.map(t => cols.map(c => `"${(t[c]||'').toString().replace(/"/g,'""')}"`).join(','))
+    ...tickets.map(t => cols.map(c => celdaCSV(t[c])).join(','))
   ].join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  // BOM para que Excel lea el archivo como UTF-8 (tildes y ñ)
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href = url;
