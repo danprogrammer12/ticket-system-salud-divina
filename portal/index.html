@@ -817,6 +817,17 @@ function generarCodigo() {
   return `SD-${fecha}-${rand}`;
 }
 
+// Genera códigos hasta encontrar uno que no esté en la tabla tickets
+async function generarCodigoDisponible() {
+  for (let intento = 0; intento < 10; intento++) {
+    const codigo = generarCodigo();
+    const { data, error } = await sbClient.from('tickets').select('id').eq('codigo', codigo).limit(1);
+    if (error) throw error;
+    if (!data.length) return codigo;
+  }
+  throw new Error('No se pudo generar un código de ticket único');
+}
+
 function formatFecha(iso) {
   return new Date(iso).toLocaleString('es-CO', {
     year: 'numeric', month: 'long', day: 'numeric',
@@ -855,12 +866,14 @@ async function enviarTicket() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Enviando...';
 
-  const codigo    = generarCodigo();
   const prioridad = urgente ? 'Alta' : 'Normal';
   const fechaISO  = new Date().toISOString();
   const fechaLeg  = formatFecha(fechaISO);
 
   try {
+    // 0. Código que no exista aún (antes de subir imágenes, que usan el código en la ruta)
+    let codigo = await generarCodigoDisponible();
+
     // 1. Subir imágenes a Supabase Storage (si hay)
     let imagenesUrls = [];
     if (imagenesSeleccionadas.length > 0) {
@@ -872,13 +885,20 @@ async function enviarTicket() {
 
     // 2. Guardar ticket en Supabase
     btn.innerHTML = '<span class="spinner"></span>Guardando...';
-    const { error: dbError } = await sbClient.from('tickets').insert([{
-      codigo, nombre, area, correo_solicitante: correo,
+    const insertarTicket = cod => sbClient.from('tickets').insert([{
+      codigo: cod, nombre, area, correo_solicitante: correo,
       tipo: tipo === 'Parametrización' ? `Parametrización — ${paramSeleccionado}` : tipo,
       equipo: equipo || 'No especificado',
       descripcion, prioridad, estado: 'Pendiente',
       urgente, imagenes: imagenesUrls, created_at: fechaISO
     }]);
+    let { error: dbError } = await insertarTicket(codigo);
+    // 23505 = código repetido (otro ticket tomó el mismo código entre la verificación y el guardado).
+    // Requiere la restricción UNIQUE en tickets.codigo. Las imágenes quedan en la ruta del código anterior.
+    if (dbError && dbError.code === '23505') {
+      codigo = await generarCodigoDisponible();
+      ({ error: dbError } = await insertarTicket(codigo));
+    }
     if (dbError) throw dbError;
 
     // 3. Correo a sistemas (principal + CC)
