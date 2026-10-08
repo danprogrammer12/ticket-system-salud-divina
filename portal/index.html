@@ -631,7 +631,8 @@ function selectParam(el, valor) {
         <h3>¡Ticket enviado!</h3>
         <p>Tu solicitud fue recibida por el departamento de sistemas. Tu código de seguimiento es:</p>
         <div class="success-code" id="codigo-generado"></div>
-        <p>Hemos enviado una confirmación a <strong id="correo-confirmado"></strong>.<br/>Usa tu código para consultar el estado en cualquier momento.</p>
+        <p id="correo-ok">Hemos enviado una confirmación a <strong id="correo-confirmado"></strong>.<br/>Usa tu código para consultar el estado en cualquier momento.</p>
+        <p id="correo-fallo" style="display:none;">Tu ticket quedó registrado, pero no pudimos enviarte el correo de confirmación.<br/><strong>Anota tu código</strong> para consultar el estado en cualquier momento. No es necesario enviarlo de nuevo.</p>
         <button class="btn-nuevo" onclick="nuevoTicket()">Reportar otro problema</button>
       </div>
 
@@ -843,6 +844,17 @@ function showToast(msg, error = false) {
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
+// Envía un correo con EmailJS; devuelve false si falla en vez de lanzar error
+async function enviarCorreo(plantilla, params) {
+  try {
+    await emailjs.send(EJS_SERVICE, plantilla, params);
+    return true;
+  } catch (e) {
+    console.error('Error enviando correo:', e);
+    return false;
+  }
+}
+
 // ── ENVIAR TICKET ─────────────────────────────────────────
 async function enviarTicket() {
   const nombre     = document.getElementById('nombre').value.trim();
@@ -901,9 +913,12 @@ async function enviarTicket() {
     }
     if (dbError) throw dbError;
 
+    // Desde aquí el ticket ya está guardado: un fallo de correo no debe mostrarse como
+    // error del ticket, porque el empleado lo reenviaría y quedaría duplicado.
+
     // 3. Correo a sistemas (principal + CC)
     btn.innerHTML = '<span class="spinner"></span>Enviando correos...';
-    await emailjs.send(EJS_SERVICE, EJS_TPL_ADMIN, {
+    const okAdmin = await enviarCorreo(EJS_TPL_ADMIN, {
       codigo, nombre, area, correo_solicitante: correo,
       tipo: tipo === 'Parametrización' ? `Parametrización — ${paramSeleccionado}` : tipo,
       equipo: equipo || 'No especificado',
@@ -916,7 +931,7 @@ async function enviarTicket() {
     });
 
     // 4. Constancia al empleado
-    await emailjs.send(EJS_SERVICE, EJS_TPL_USUARIO, {
+    const okEmpleado = await enviarCorreo(EJS_TPL_USUARIO, {
       codigo, nombre, area, tipo,
       descripcion, prioridad, fecha: fechaLeg,
       imagenes: imagenesUrls.length > 0
@@ -925,18 +940,27 @@ async function enviarTicket() {
       to_email: correo
     });
 
-    // 5. Log de correos
-    await sbClient.from('email_log').insert([
-      { ticket_codigo: codigo, destinatario: 'sistemsalud.divina@gmail.com',       tipo_correo: 'ticket_nuevo',           enviado_at: fechaISO },
-      { ticket_codigo: codigo, destinatario: 'mantenimientossaluddivina@gmail.com', tipo_correo: 'ticket_nuevo_cc',        enviado_at: fechaISO },
-      { ticket_codigo: codigo, destinatario: correo,                                tipo_correo: 'constancia_solicitante', enviado_at: fechaISO }
-    ]);
+    // 5. Log de correos (solo los que sí se enviaron)
+    const log = [];
+    if (okAdmin) {
+      log.push({ ticket_codigo: codigo, destinatario: 'sistemsalud.divina@gmail.com',       tipo_correo: 'ticket_nuevo',    enviado_at: fechaISO });
+      log.push({ ticket_codigo: codigo, destinatario: 'mantenimientossaluddivina@gmail.com', tipo_correo: 'ticket_nuevo_cc', enviado_at: fechaISO });
+    }
+    if (okEmpleado) {
+      log.push({ ticket_codigo: codigo, destinatario: correo, tipo_correo: 'constancia_solicitante', enviado_at: fechaISO });
+    }
+    if (log.length) {
+      const { error: logError } = await sbClient.from('email_log').insert(log);
+      if (logError) console.error('Error guardando log de correos:', logError);
+    }
 
-    // 6. Éxito
+    // 6. Éxito (el ticket existe aunque haya fallado algún correo)
     document.getElementById('form-wrap').style.display  = 'none';
     document.getElementById('success-wrap').style.display = 'block';
     document.getElementById('codigo-generado').textContent  = codigo;
     document.getElementById('correo-confirmado').textContent = correo;
+    document.getElementById('correo-ok').style.display    = okEmpleado ? '' : 'none';
+    document.getElementById('correo-fallo').style.display = okEmpleado ? 'none' : '';
 
   } catch (err) {
     console.error(err);
