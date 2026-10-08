@@ -513,15 +513,21 @@ tr:hover td { background: var(--gray-50); }
             <select class="filter-select" id="filt-prioridad" onchange="cargarTickets()">
               <option value="">Toda prioridad</option>
               <option value="Alta">Alta</option>
-              <option value="Media">Media</option>
-              <option value="Baja">Baja</option>
+              <option value="Normal">Normal</option>
             </select>
+            <!-- Misma lista de áreas que el portal de empleados -->
             <select class="filter-select" id="filt-area" onchange="cargarTickets()">
               <option value="">Todas las áreas</option>
-              <option>Presidencia</option><option>Dirección médica</option><option>Gerencia general</option>
-              <option>Urgencias</option><option>Farmacia</option><option>Laboratorio clínico</option>
-              <option>UCI</option><option>Hospitalización</option><option>Consulta externa</option>
-              <option>Facturación electrónica</option><option>Auxiliar de admisiones</option>
+              <option>Recurso Humano</option><option>Contabilidad</option><option>Facturación</option>
+              <option>Gerencia</option><option>Hospitalización</option><option>Unidad de Cuidados Intensivos</option>
+              <option>Unidad de Cuidados Intermedios</option><option>Cirugía</option><option>Esterilización</option>
+              <option>Admisiones Consulta Externa</option><option>Consultorios</option><option>Odontología</option>
+              <option>Unidad Pre Transfusional</option><option>Toma de Muestras</option><option>Laboratorio</option>
+              <option>Farmacia</option><option>RX Periapical</option><option>Urgencias</option>
+              <option>Reanimación</option><option>Observación</option><option>RX</option>
+              <option>Tomografía</option><option>Mantenimiento</option><option>Lavandería</option>
+              <option>Área de Gases</option><option>Sub Estación Eléctrica</option><option>Residuos</option>
+              <option>Exterior</option><option>Cubierta</option>
             </select>
             <button class="btn-sm" onclick="limpiarFiltros()">Limpiar</button>
           </div>
@@ -667,6 +673,22 @@ const CATEGORIAS = [
   'Instalaciones y configuraciones'
 ];
 
+// ── Tipos del portal agrupados por categoría (deben coincidir con los optgroup del portal) ──
+// Parametrización se guarda como "Parametrización — <subtipo>"
+const CATEGORIA_SUBTIPOS = {
+  'Soporte técnico': ['Soporte técnico','Fallo de equipo','Problema con software','Red o conectividad','Impresora o periférico','Capacitación','Otro'],
+  'Gestión de usuarios': ['Gestión de usuarios','Acceso / contraseña','Solicitud de usuario nuevo'],
+  'Instalaciones y configuraciones': ['Instalaciones y configuraciones','Instalación de programa']
+};
+
+function categoriaDe(tipo) {
+  if(tipo && tipo.startsWith('Parametrización')) return 'Parametrización';
+  for(const [cat, subtipos] of Object.entries(CATEGORIA_SUBTIPOS)) {
+    if(subtipos.includes(tipo)) return cat;
+  }
+  return 'Soporte técnico';
+}
+
 // ── Horarios según lineamiento ────────────────────────
 const HORARIOS = {
   'Soporte técnico':                { inicio: 8, fin: 17 },
@@ -770,8 +792,8 @@ function pillEstado(e) {
 }
 
 function pillPrioridad(p) {
-  const cls = { Alta:'p-alta', Media:'p-media', Baja:'p-baja' };
-  return `<span class="pill ${cls[p]||'p-baja'}">${p||'Baja'}</span>`;
+  const prioridad = p === 'Alta' ? 'Alta' : 'Normal';
+  return `<span class="pill ${prioridad === 'Alta' ? 'p-alta' : 'p-baja'}">${prioridad}</span>`;
 }
 
 function pillCategoria(t) {
@@ -781,13 +803,7 @@ function pillCategoria(t) {
     'Gestión de usuarios':             't-usuarios',
     'Instalaciones y configuraciones': 't-instalaciones'
   };
-  // Compatibilidad con tipos viejos
-  let cls = 't-soporte';
-  if(t && t.toLowerCase().includes('param'))    cls = 't-parametrizacion';
-  else if(t && (t.toLowerCase().includes('usuario') || t.toLowerCase().includes('acceso') || t.toLowerCase().includes('contraseña'))) cls = 't-usuarios';
-  else if(t && (t.toLowerCase().includes('instal') || t.toLowerCase().includes('configur') || t.toLowerCase().includes('programa'))) cls = 't-instalaciones';
-  else if(map[t]) cls = map[t];
-  return `<span class="pill ${cls}">${t||'—'}</span>`;
+  return `<span class="pill ${map[categoriaDe(t)]}">${t||'—'}</span>`;
 }
 
 function separadorGrupo(label, count, color, badgeBg, badgeText, tbody) {
@@ -879,12 +895,7 @@ async function cargarDashboard() {
     </div>`;
 
   // Charts — categorías del lineamiento
-  const catData = CATEGORIAS.map(c => tickets.filter(t => {
-    if(c === 'Soporte técnico') return t.tipo === c || ['Fallo de equipo','Red o conectividad','Impresora o periférico','Problema con software'].includes(t.tipo);
-    if(c === 'Gestión de usuarios') return t.tipo === c || ['Acceso / contraseña','Solicitud de usuario nuevo'].includes(t.tipo);
-    if(c === 'Instalaciones y configuraciones') return t.tipo === c || ['Instalación de programa'].includes(t.tipo);
-    return t.tipo === c;
-  }).length);
+  const catData = CATEGORIAS.map(c => tickets.filter(t => categoriaDe(t.tipo) === c).length);
 
   if(chartTipo)   chartTipo.destroy();
   if(chartEstado) chartEstado.destroy();
@@ -940,13 +951,16 @@ async function cargarTickets() {
 
   let query = sb.from('tickets').select('*').order('created_at', { ascending: false });
   if(estado)    query = query.eq('estado', estado);
-  if(tipo)      query = query.eq('tipo', tipo);
   if(area)      query = query.eq('area', area);
-  if(prioridad) query = query.eq('prioridad', prioridad);
+  // Todo lo que no es Alta cuenta como Normal (incluye valores viejos Media/Baja o vacíos)
+  if(prioridad === 'Alta')   query = query.eq('prioridad', 'Alta');
+  if(prioridad === 'Normal') query = query.or('prioridad.is.null,prioridad.neq.Alta');
 
   const { data } = await query;
+  // La categoría se deriva del tipo guardado, por eso se filtra aquí y no en la consulta
+  const filtrados = tipo && data ? data.filter(t => categoriaDe(t.tipo) === tipo) : data;
   const tbody = document.getElementById('tabla-tickets');
-  renderTicketsConDivision(data, tbody);
+  renderTicketsConDivision(filtrados, tbody);
 }
 
 function limpiarFiltros() {
@@ -1244,7 +1258,7 @@ async function exportarPDFSeleccion() {
       ['Categoría:', t.tipo],
       ['Solicitado por:', `${t.nombre} — ${t.area}`],
       ['Fecha de reporte:', fmt(t.created_at)],
-      ['Estado:', `${t.estado} · Prioridad: ${t.prioridad||'Baja'}`],
+      ['Estado:', `${t.estado} · Prioridad: ${t.prioridad === 'Alta' ? 'Alta' : 'Normal'}`],
       ['Equipo afectado:', t.equipo||'No especificado'],
     ];
     campos.forEach(([k, v]) => {

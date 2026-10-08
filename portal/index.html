@@ -6,7 +6,8 @@
 <title>Soporte Sistemas — Salud Divina de la Costa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
 // ── PARAMETRIZACIÓN ───────────────────────────────────
 let paramSeleccionado = '';
 
@@ -538,17 +539,26 @@ function selectParam(el, valor) {
             <label for="tipo">Tipo de solicitud <span class="req">*</span></label>
             <select id="tipo" onchange="toggleParametrizacion()">
               <option value="">Seleccionar tipo...</option>
-              <option>Soporte técnico</option>
-              <option>Fallo de equipo</option>
-              <option>Problema con software</option>
-              <option>Acceso / contraseña</option>
-              <option>Red o conectividad</option>
-              <option>Impresora o periférico</option>
-              <option>Instalación de programa</option>
-              <option>Solicitud de usuario nuevo</option>
-              <option>Capacitación</option>
-              <option value="Parametrización">Parametrización</option>
-              <option>Otro</option>
+              <!-- Agrupados según las 4 categorías del lineamiento (deben coincidir con CATEGORIA_SUBTIPOS en admin) -->
+              <optgroup label="Soporte técnico">
+                <option>Soporte técnico</option>
+                <option>Fallo de equipo</option>
+                <option>Problema con software</option>
+                <option>Red o conectividad</option>
+                <option>Impresora o periférico</option>
+                <option>Capacitación</option>
+                <option>Otro</option>
+              </optgroup>
+              <optgroup label="Parametrización">
+                <option value="Parametrización">Parametrización</option>
+              </optgroup>
+              <optgroup label="Gestión de usuarios">
+                <option>Acceso / contraseña</option>
+                <option>Solicitud de usuario nuevo</option>
+              </optgroup>
+              <optgroup label="Instalaciones y configuraciones">
+                <option>Instalación de programa</option>
+              </optgroup>
             </select>
           </div>
           <!-- SUBMODULO PARAMETRIZACIÓN -->
